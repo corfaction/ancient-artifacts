@@ -1,0 +1,39 @@
+{
+	"schemaVersion": 1,
+	"id": "ancient-artifacts",
+	"version": "${version}",
+	"name": "Ancient Artifacts",
+	"description": "Expands vanilla archaeology with new artifacts, an archaeology table, and ancient relics.",
+	"authors": ["corfaction"],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/ancient-artifacts/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.corfaction.ancientartifacts.AncientArtifacts"
+		],
+		"client": [
+			"net.corfaction.ancientartifacts.client.AncientArtifactsClient"
+		],
+		"fabric-datagen": [
+			"net.corfaction.ancientartifacts.client.AncientArtifactsDataGenerator"
+		]
+	},
+	"mixins": [
+		"ancient-artifacts.mixins.json",
+		{
+			"config": "ancient-artifacts.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
