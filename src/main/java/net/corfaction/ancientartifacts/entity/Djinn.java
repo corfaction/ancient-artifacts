@@ -4,11 +4,13 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
+import net.minecraft.core.particles.DustColorTransitionOptions;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -34,6 +36,11 @@ public class Djinn extends PathfinderMob {
         super(type, level);
         this.moveControl = new FlyingMoveControl(this, 10, true);
         this.setNoGravity(true);
+    }
+
+    @Override
+    public boolean causeFallDamage(final double fallDistance, final float damageModifier, final DamageSource damageSource) {
+        return false;
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -71,12 +78,6 @@ public class Djinn extends PathfinderMob {
         return block == Blocks.SUSPICIOUS_SAND || block == Blocks.SUSPICIOUS_GRAVEL;
     }
 
-    /**
-     * Определяет высоту поверхности под заданными координатами
-     * @param x координата X
-     * @param z координата Z
-     * @return Y координата поверхности (первый не-воздушный блок + 1)
-     */
     private double getSurfaceY(double x, double z) {
         int blockX = Mth.floor(x);
         int blockZ = Mth.floor(z);
@@ -89,7 +90,6 @@ public class Djinn extends PathfinderMob {
         return heightPos.getY();
     }
 
-    // Goal для поиска ближайшего подозрительного блока
     private static class FindSuspiciousBlockGoal extends Goal {
         private final Djinn djinn;
 
@@ -194,6 +194,7 @@ public class Djinn extends PathfinderMob {
 
             if (suspiciousBlock == null) {
                 System.out.println("Djinn found NO suspicious blocks in nearby Trail Ruins");
+                djinn.spawnDisappearParticles();
                 djinn.discard();
                 return;
             }
@@ -210,12 +211,19 @@ public class Djinn extends PathfinderMob {
         private final Djinn djinn;
         private final double speed;
 
-        private static final double SURFACE_OFFSET = 2.0D;
-        private static final double DESCEND_RADIUS = 2.0D;
+        private @Nullable BlockPos reachablePos;
+        private @Nullable BlockPos currentPathTarget;
+
+        private static final double REACH_DISTANCE = 1.0D;
+
+        private static final double PATH_STEP_DISTANCE = 24.0D;
+
+        private static final int MAX_SEARCH_HEIGHT = 32;
 
         public FlyToTargetBlockGoal(Djinn djinn) {
             this.djinn = djinn;
             this.speed = 0.6D;
+
             this.setFlags(EnumSet.of(Flag.MOVE));
         }
 
@@ -229,96 +237,53 @@ public class Djinn extends PathfinderMob {
         }
 
         @Override
-        public void tick() {
-            BlockPos targetPos = djinn.getTargetBlockPos();
+        public void start() {
+            reachablePos = findClosestReachablePosition();
 
-            if (targetPos == null) {
+            if (reachablePos == null) {
+                System.out.println(
+                        "Djinn cannot find free position above suspicious block: " +
+                                djinn.getTargetBlockPos()
+                );
+
+                djinn.spawnDisappearParticles();
+                djinn.discard();
                 return;
             }
 
-            double targetX = targetPos.getX() + 0.5D;
-            double targetZ = targetPos.getZ() + 0.5D;
-
-            double dx = targetX - djinn.getX();
-            double dz = targetZ - djinn.getZ();
-
-            double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
-
-            /*
-             * ============================================================
-             * ФАЗА 1
-             *
-             * Летим к X/Z подозрительного блока.
-             * При этом ВСЕГДА держимся на 2 блока выше поверхности.
-             * ============================================================
-             */
-            if (horizontalDistance > DESCEND_RADIUS) {
-
-                double surfaceY = djinn.getSurfaceY(
-                        djinn.getX(),
-                        djinn.getZ()
-                );
-
-                double wantedY = surfaceY + SURFACE_OFFSET;
-
-                djinn.getMoveControl().setWantedPosition(
-                        targetX,
-                        wantedY,
-                        targetZ,
-                        speed
-                );
-
-                return;
-            }
-
-            /*
-             * ============================================================
-             * ФАЗА 2
-             *
-             * Джинн уже находится над нужным X/Z.
-             *
-             * Теперь определяем поверхность ИМЕННО ПОД ЦЕЛЬЮ.
-             *
-             * Пока джинн находится на этой высоте, он подлетает
-             * непосредственно к нужному X/Z.
-             * ============================================================
-             */
-
-            double targetSurfaceY = djinn.getSurfaceY(
-                    targetX,
-                    targetZ
+            System.out.println(
+                    "Djinn target position: " +
+                            reachablePos +
+                            " for suspicious block: " +
+                            djinn.getTargetBlockPos()
             );
 
-            double surfaceFlightY = targetSurfaceY + SURFACE_OFFSET;
+            currentPathTarget = null;
 
-            /*
-             * Если мы ещё не достигли высоты поверхности + 2,
-             * сначала занимаем правильную высоту.
-             */
-            if (djinn.getY() > surfaceFlightY + 0.2D) {
+            updatePath();
+        }
 
-                djinn.getMoveControl().setWantedPosition(
-                        targetX,
-                        surfaceFlightY,
-                        targetZ,
-                        speed
-                );
-
+        @Override
+        public void tick() {
+            if (reachablePos == null) {
                 return;
             }
 
-            /*
-             * ============================================================
-             * ФАЗА 3
-             *
-             * Мы находимся прямо над целью и на высоте 2 блока
-             * над поверхностью.
-             *
-             * Теперь начинаем спускаться к подозрительному блоку.
-             * ============================================================
-             */
+            BlockPos suspiciousBlock = djinn.getTargetBlockPos();
 
-            double targetY = targetPos.getY() + 0.5D;
+            if (suspiciousBlock == null ||
+                    !djinn.isSuspiciousBlock(
+                            djinn.level(),
+                            suspiciousBlock
+                    )) {
+
+                djinn.getNavigation().stop();
+                return;
+            }
+
+            double targetX = reachablePos.getX() + 0.5D;
+            double targetY = reachablePos.getY() + 0.5D;
+            double targetZ = reachablePos.getZ() + 0.5D;
 
             double distanceToTarget = djinn.distanceToSqr(
                     targetX,
@@ -326,30 +291,228 @@ public class Djinn extends PathfinderMob {
                     targetZ
             );
 
-            if (distanceToTarget < 1.0D) {
-                System.out.println("Djinn reached target at " + targetPos);
+            if (distanceToTarget <= REACH_DISTANCE) {
+                System.out.println(
+                        "Djinn reached excavation position: " +
+                                reachablePos
+                );
+
+                djinn.getNavigation().stop();
+                djinn.spawnDisappearParticles();
                 djinn.discard();
                 return;
             }
 
-            djinn.getMoveControl().setWantedPosition(
-                    targetX,
-                    targetY,
-                    targetZ,
+            if (currentPathTarget != null) {
+                double distanceToPathTarget = djinn.distanceToSqr(
+                        currentPathTarget.getX() + 0.5D,
+                        currentPathTarget.getY() + 0.5D,
+                        currentPathTarget.getZ() + 0.5D
+                );
+
+                if (distanceToPathTarget <= REACH_DISTANCE) {
+                    currentPathTarget = null;
+                    updatePath();
+                    return;
+                }
+            }
+
+            if (djinn.getNavigation().isDone()) {
+                updatePath();
+            }
+        }
+
+        private void updatePath() {
+            if (reachablePos == null) {
+                return;
+            }
+
+            Vec3 current = djinn.position();
+
+            Vec3 target = new Vec3(
+                    reachablePos.getX() + 0.5D,
+                    reachablePos.getY() + 0.5D,
+                    reachablePos.getZ() + 0.5D
+            );
+
+            double dx = target.x - current.x;
+            double dy = target.y - current.y;
+            double dz = target.z - current.z;
+
+            double distance = Math.sqrt(
+                    dx * dx +
+                            dy * dy +
+                            dz * dz
+            );
+
+            if (distance <= PATH_STEP_DISTANCE) {
+                currentPathTarget = reachablePos;
+
+                djinn.getNavigation().moveTo(
+                        target.x,
+                        target.y,
+                        target.z,
+                        speed
+                );
+
+                return;
+            }
+
+            double directionX = dx / distance;
+            double directionY = dy / distance;
+            double directionZ = dz / distance;
+
+            double intermediateX = current.x + directionX * PATH_STEP_DISTANCE;
+            double intermediateY = current.y + directionY * PATH_STEP_DISTANCE;
+            double intermediateZ = current.z + directionZ * PATH_STEP_DISTANCE;
+
+            BlockPos intermediatePos = BlockPos.containing(
+                    intermediateX,
+                    intermediateY,
+                    intermediateZ
+            );
+
+            if (!canDjinnStandAt(intermediatePos)) {
+                BlockPos higherPos = findFreePositionAbove(
+                        intermediatePos,
+                        8
+                );
+
+                if (higherPos != null) {
+                    intermediatePos = higherPos;
+                } else {
+                    currentPathTarget = reachablePos;
+
+                    djinn.getNavigation().moveTo(
+                            target.x,
+                            target.y,
+                            target.z,
+                            speed
+                    );
+
+                    return;
+                }
+            }
+
+            currentPathTarget = intermediatePos;
+
+            djinn.getNavigation().moveTo(
+                    intermediatePos.getX() + 0.5D,
+                    intermediatePos.getY() + 0.5D,
+                    intermediatePos.getZ() + 0.5D,
                     speed
             );
         }
 
+        private @Nullable BlockPos findClosestReachablePosition() {
+            BlockPos target = djinn.getTargetBlockPos();
+
+            if (target == null) {
+                return null;
+            }
+
+            int minY = Math.max(
+                    target.getY(),
+                    djinn.level().getMinY()
+            );
+
+            int maxY = Math.min(
+                    target.getY() + MAX_SEARCH_HEIGHT,
+                    djinn.level().getMaxY() - 2
+            );
+
+            for (int y = minY; y <= maxY; y++) {
+                BlockPos candidate = new BlockPos(
+                        target.getX(),
+                        y,
+                        target.getZ()
+                );
+
+                if (!canDjinnStandAt(candidate)) {
+                    continue;
+                }
+
+                return candidate;
+            }
+
+            return null;
+        }
+
+        private boolean canDjinnStandAt(BlockPos pos) {
+            Level level = djinn.level();
+
+
+            double x = pos.getX() + 0.5D;
+            double y = pos.getY();
+            double z = pos.getZ() + 0.5D;
+
+            return level.noCollision(
+                    djinn,
+                    djinn.getBoundingBox().move(
+                            x - djinn.getX(),
+                            y - djinn.getY(),
+                            z - djinn.getZ()
+                    )
+            );
+        }
+
+        private @Nullable BlockPos findFreePositionAbove(
+                BlockPos start,
+                int maxDistance
+        ) {
+            for (int i = 1; i <= maxDistance; i++) {
+                BlockPos candidate = start.above(i);
+
+                if (canDjinnStandAt(candidate)) {
+                    return candidate;
+                }
+            }
+
+            return null;
+        }
+
         @Override
         public boolean canContinueToUse() {
-            BlockPos targetPos = djinn.getTargetBlockPos();
-
-            return targetPos != null &&
+            return reachablePos != null &&
+                    djinn.getTargetBlockPos() != null &&
                     djinn.isSuspiciousBlock(
                             djinn.level(),
-                            targetPos
+                            djinn.getTargetBlockPos()
                     );
         }
+
+        @Override
+        public void stop() {
+            djinn.getNavigation().stop();
+
+            reachablePos = null;
+            currentPathTarget = null;
+        }
+    }
+
+    private void spawnDisappearParticles() {
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        DustColorTransitionOptions particle =
+                new DustColorTransitionOptions(
+                        0xFFFF00,
+                        0xFFAA00,
+                        1.5F
+                );
+
+        serverLevel.sendParticles(
+                particle,
+                getX(),
+                getY() + getBbHeight() * 0.5D,
+                getZ(),
+                30,
+                getBbWidth() * 0.5D,
+                getBbHeight() * 0.5D,
+                getBbWidth() * 0.5D,
+                0.05D
+        );
     }
 
     @Override
