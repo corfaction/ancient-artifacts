@@ -21,6 +21,7 @@ public class AncientArtifacts implements ModInitializer {
 	public void onInitialize() {
 		ModItems.registerCreativeTabItems();
 		ModEntity.register();
+		ModLootTables.register();
 	}
 
 	public static Identifier id(String path) {
