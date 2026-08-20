@@ -1,3 +1,7 @@
 {
-  "item.ancient-artifacts.mysterious_lamp": "Mysterious Lamp"
+  "item.ancient-artifacts.mysterious_lamp": "Mysterious Lamp",
+  "item.ancient-artifacts.petrified_talisman": "Petrified Talisman",
+  "item.ancient-artifacts.guardian_talisman": "Guardian Talisman",
+  "block.ancient-artifacts.archaeological_table": "Archaeological Table",
+  "container.ancient-artifacts.archaeological_table": "Archaeological Table"
 }

@@ -3,7 +3,7 @@
 	"package": "net.corfaction.ancientartifacts.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
-		"ExampleMixin"
+		"guardian_ghost.PlayerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

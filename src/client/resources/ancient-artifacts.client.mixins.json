@@ -1,14 +1,16 @@
 {
-	"required": true,
-	"package": "net.corfaction.ancientartifacts.client.mixin",
-	"compatibilityLevel": "JAVA_25",
-	"client": [
-		"ExampleClientMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
-	}
+  "required": true,
+  "package": "net.corfaction.ancientartifacts.client.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "guardian_ghost.AvatarRendererMixin",
+    "guardian_ghost.AvatarRenderStateMixin",
+    "guardian_ghost.LivingEntityRendererInvoker"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
 }

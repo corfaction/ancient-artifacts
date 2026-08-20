@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "ancient-artifacts:block/archaeological_table_down",
+    "east": "ancient-artifacts:block/archaeological_table_east",
+    "north": "ancient-artifacts:block/archaeological_table_north",
+    "particle": "ancient-artifacts:block/archaeological_table_down",
+    "south": "ancient-artifacts:block/archaeological_table_south",
+    "up": "ancient-artifacts:block/archaeological_table_up",
+    "west": "ancient-artifacts:block/archaeological_table_west"
+  }
+}

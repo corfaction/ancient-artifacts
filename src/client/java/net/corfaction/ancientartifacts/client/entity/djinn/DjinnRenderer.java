@@ -1,4 +1,4 @@
-package net.corfaction.ancientartifacts.client.entity;
+package net.corfaction.ancientartifacts.client.entity.djinn;
 
 import net.corfaction.ancientartifacts.AncientArtifacts;
 import net.corfaction.ancientartifacts.entity.Djinn;
@@ -8,9 +8,9 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.Identifier;
 
-public class DjinnRenderer extends MobRenderer<Djinn, DjinnRenderState, AllayModel> {
+public final class DjinnRenderer extends MobRenderer<Djinn, DjinnRenderState, AllayModel> {
 
-    private static final Identifier ALLAY_TEXTURE = AncientArtifacts.id("textures/entity/djinn.png");
+    private static final Identifier TEXTURE = AncientArtifacts.id("textures/entity/djinn.png");
 
     public DjinnRenderer(EntityRendererProvider.Context context) {
         super(context, new AllayModel(context.bakeLayer(ModelLayers.ALLAY)), 0.4F);
@@ -23,6 +23,6 @@ public class DjinnRenderer extends MobRenderer<Djinn, DjinnRenderState, AllayMod
 
     @Override
     public Identifier getTextureLocation(DjinnRenderState state) {
-        return ALLAY_TEXTURE;
+        return TEXTURE;
     }
 }

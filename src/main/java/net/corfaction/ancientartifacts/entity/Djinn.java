@@ -1,6 +1,8 @@
 package net.corfaction.ancientartifacts.entity;
 
+import com.llamalad7.mixinextras.expression.impl.ast.expressions.IdentifierAssignmentExpression;
 import com.mojang.datafixers.util.Pair;
+import net.corfaction.ancientartifacts.AncientArtifacts;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
@@ -9,7 +11,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
@@ -20,26 +21,32 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 
-public class Djinn extends PathfinderMob {
+public final class Djinn extends PathfinderMob {
+
     private BlockPos targetBlockPos;
 
     public Djinn(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
-        this.moveControl = new FlyingMoveControl(this, 10, true);
-        this.setNoGravity(true);
+
+        moveControl = new FlyingMoveControl(this, 10, true);
+        setNoGravity(true);
     }
 
     @Override
-    public boolean causeFallDamage(final double fallDistance, final float damageModifier, final DamageSource damageSource) {
+    public boolean causeFallDamage(
+            final double fallDistance,
+            final float damageModifier,
+            final DamageSource damageSource
+    ) {
         return false;
     }
 
@@ -54,15 +61,17 @@ public class Djinn extends PathfinderMob {
     @Override
     protected PathNavigation createNavigation(Level level) {
         FlyingPathNavigation navigation = new FlyingPathNavigation(this, level);
+
         navigation.setCanOpenDoors(false);
         navigation.setCanFloat(true);
+
         return navigation;
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new FindSuspiciousBlockGoal(this));
-        this.goalSelector.addGoal(2, new FlyToTargetBlockGoal(this));
+        goalSelector.addGoal(1, new FindSuspiciousBlockGoal(this));
+        goalSelector.addGoal(2, new FlyToTargetBlockGoal(this));
     }
 
     public BlockPos getTargetBlockPos() {
@@ -70,28 +79,18 @@ public class Djinn extends PathfinderMob {
     }
 
     public void setTargetBlockPos(BlockPos pos) {
-        this.targetBlockPos = pos;
+        targetBlockPos = pos;
     }
 
     private boolean isSuspiciousBlock(Level level, BlockPos pos) {
-        Block block = level.getBlockState(pos).getBlock();
-        return block == Blocks.SUSPICIOUS_SAND || block == Blocks.SUSPICIOUS_GRAVEL;
+        return level.getBlockState(pos).getBlock() == Blocks.SUSPICIOUS_SAND
+                || level.getBlockState(pos).getBlock() == Blocks.SUSPICIOUS_GRAVEL;
     }
 
-    private double getSurfaceY(double x, double z) {
-        int blockX = Mth.floor(x);
-        int blockZ = Mth.floor(z);
+    private static final class FindSuspiciousBlockGoal extends Goal {
 
-        BlockPos heightPos = level().getHeightmapPos(
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                new BlockPos(blockX, 0, blockZ)
-        );
-
-        return heightPos.getY();
-    }
-
-    private static class FindSuspiciousBlockGoal extends Goal {
-        private final Djinn djinn;
+        private static final int STRUCTURE_SEARCH_RADIUS = 1000;
+        private static final int STRUCTURE_SEARCH_STEP = 500;
 
         private static final ResourceKey<Structure> TRAIL_RUINS =
                 ResourceKey.create(
@@ -99,53 +98,92 @@ public class Djinn extends PathfinderMob {
                         Identifier.withDefaultNamespace("trail_ruins")
                 );
 
-        private @Nullable Pair<BlockPos, Holder<Structure>> findNearestArchaeologicalStructure(
-                ServerLevel level
-        ) {
+        private static final ResourceKey<Structure> OCEAN_RUINS_COLD =
+                ResourceKey.create(
+                        Registries.STRUCTURE,
+                        Identifier.withDefaultNamespace("trail_ruins")
+                );
 
-            var structures = level.registryAccess()
-                    .lookupOrThrow(Registries.STRUCTURE);
+        private static final ResourceKey<Structure> OCEAN_RUINS_WARM =
+                ResourceKey.create(
+                        Registries.STRUCTURE,
+                        Identifier.withDefaultNamespace("trail_ruins")
+                );
 
-            HolderSet<Structure> targets = HolderSet.direct(
-                    structures.getOrThrow(TRAIL_RUINS)
-            );
+        private static final ResourceKey<Structure> DESERT_PYRAMID =
+                ResourceKey.create(
+                        Registries.STRUCTURE,
+                        Identifier.withDefaultNamespace("trail_ruins")
+                );
 
-            return level.getChunkSource()
-                    .getGenerator()
-                    .findNearestMapStructure(
-                            level,
-                            targets,
-                            this.djinn.blockPosition(),
-                            64,
-                            false
-                    );
+        private final Djinn djinn;
+        private final Set<BlockPos> checkedStructures = new HashSet<>();
+
+        private FindSuspiciousBlockGoal(Djinn djinn) {
+            this.djinn = djinn;
+            setFlags(EnumSet.of(Flag.MOVE));
         }
 
-        private @Nullable BlockPos findSuspiciousBlockInNearestStructure(ServerLevel level) {
-            Pair<BlockPos, Holder<Structure>> structure =
-                    findNearestArchaeologicalStructure(level);
+        private @Nullable Pair<BlockPos, Holder<Structure>> findNearestUncheckedArchaeologicalStructure(
+                ServerLevel level
+        ) {
+            var structures = level.registryAccess().lookupOrThrow(Registries.STRUCTURE);
 
-            if (structure == null) {
-                return null;
+            HolderSet<Structure> targets = HolderSet.direct(
+                    structures.getOrThrow(TRAIL_RUINS),
+                    structures.getOrThrow(OCEAN_RUINS_COLD),
+                    structures.getOrThrow(OCEAN_RUINS_WARM),
+                    structures.getOrThrow(DESERT_PYRAMID)
+            );
+
+            BlockPos searchPos = djinn.blockPosition();
+            int searchRadius = STRUCTURE_SEARCH_RADIUS;
+
+            for (int attempt = 0; attempt < 1000; attempt++) {
+                Pair<BlockPos, Holder<Structure>> structure = level.getChunkSource()
+                        .getGenerator()
+                        .findNearestMapStructure(
+                                level,
+                                targets,
+                                searchPos,
+                                searchRadius,
+                                false
+                        );
+
+                if (structure == null) {
+                    continue;
+                }
+
+                BlockPos structurePos = structure.getFirst();
+
+                if (!checkedStructures.contains(structurePos)) {
+                    return structure;
+                }
+
+                searchPos = BlockPos.containing(
+                        searchPos.getX() + STRUCTURE_SEARCH_STEP,
+                        searchPos.getY(),
+                        searchPos.getZ() + STRUCTURE_SEARCH_STEP
+                );
             }
 
-            BlockPos structurePos = structure.getFirst();
+            return null;
+        }
 
-            System.out.println("Djinn found Trail Ruins at " + structurePos);
-
+        private @Nullable BlockPos findSuspiciousBlockInStructure(
+                ServerLevel level,
+                BlockPos structurePos
+        ) {
             int radius = 32;
-
             BlockPos nearestBlock = null;
             double nearestDistance = Double.MAX_VALUE;
 
             for (int x = -radius; x <= radius; x++) {
-                for (int y = -radius; y <= level.getMaxY(); y++) {
+                for (int y = level.getMinY(); y <= level.getMaxY(); y++) {
                     for (int z = -radius; z <= radius; z++) {
-
                         BlockPos pos = structurePos.offset(x, y, z);
 
-                        if (pos.getY() < level.getMinY() ||
-                                pos.getY() >= level.getMaxY()) {
+                        if (pos.getY() < level.getMinY() || pos.getY() >= level.getMaxY()) {
                             continue;
                         }
 
@@ -166,11 +204,6 @@ public class Djinn extends PathfinderMob {
             return nearestBlock;
         }
 
-        public FindSuspiciousBlockGoal(Djinn djinn) {
-            this.djinn = djinn;
-            this.setFlags(EnumSet.of(Flag.MOVE));
-        }
-
         @Override
         public boolean canUse() {
             return djinn.getTargetBlockPos() == null;
@@ -187,53 +220,59 @@ public class Djinn extends PathfinderMob {
         }
 
         private void findNearestSuspiciousBlock() {
-            System.out.println("Djinn searching at " + djinn.blockPosition());
-
-            BlockPos suspiciousBlock =
-                    findSuspiciousBlockInNearestStructure((ServerLevel) djinn.level());
-
-            if (suspiciousBlock == null) {
-                System.out.println("Djinn found NO suspicious blocks in nearby Trail Ruins");
-                djinn.spawnDisappearParticles();
-                djinn.discard();
+            if (!(djinn.level() instanceof ServerLevel serverLevel)) {
                 return;
             }
 
-            djinn.setTargetBlockPos(suspiciousBlock);
+            while (true) {
+                Pair<BlockPos, Holder<Structure>> structure =
+                        findNearestUncheckedArchaeologicalStructure(serverLevel);
 
-            System.out.println(
-                    "Djinn found suspicious block in Trail Ruins: " + suspiciousBlock
-            );
+                if (structure == null) {
+                    djinn.spawnDisappearParticles();
+                    djinn.discard();
+                    return;
+                }
+
+                BlockPos structurePos = structure.getFirst();
+                checkedStructures.add(structurePos);
+
+                BlockPos suspiciousBlock =
+                        findSuspiciousBlockInStructure(serverLevel, structurePos);
+
+                if (suspiciousBlock == null) {
+                    continue;
+                }
+
+                djinn.setTargetBlockPos(suspiciousBlock);
+                return;
+            }
         }
     }
 
-    private static class FlyToTargetBlockGoal extends Goal {
+    private static final class FlyToTargetBlockGoal extends Goal {
+
+        private static final double REACH_DISTANCE = 1.0D;
+        private static final double PATH_STEP_DISTANCE = 24.0D;
+        private static final int MAX_SEARCH_HEIGHT = 32;
+
         private final Djinn djinn;
         private final double speed;
 
         private @Nullable BlockPos reachablePos;
         private @Nullable BlockPos currentPathTarget;
 
-        private static final double REACH_DISTANCE = 1.0D;
-
-        private static final double PATH_STEP_DISTANCE = 24.0D;
-
-        private static final int MAX_SEARCH_HEIGHT = 32;
-
-        public FlyToTargetBlockGoal(Djinn djinn) {
+        private FlyToTargetBlockGoal(Djinn djinn) {
             this.djinn = djinn;
-            this.speed = 0.6D;
+            speed = 0.6D;
 
-            this.setFlags(EnumSet.of(Flag.MOVE));
+            setFlags(EnumSet.of(Flag.MOVE));
         }
 
         @Override
         public boolean canUse() {
-            return djinn.getTargetBlockPos() != null &&
-                    djinn.isSuspiciousBlock(
-                            djinn.level(),
-                            djinn.getTargetBlockPos()
-                    );
+            return djinn.getTargetBlockPos() != null
+                    && djinn.isSuspiciousBlock(djinn.level(), djinn.getTargetBlockPos());
         }
 
         @Override
@@ -241,25 +280,12 @@ public class Djinn extends PathfinderMob {
             reachablePos = findClosestReachablePosition();
 
             if (reachablePos == null) {
-                System.out.println(
-                        "Djinn cannot find free position above suspicious block: " +
-                                djinn.getTargetBlockPos()
-                );
-
                 djinn.spawnDisappearParticles();
                 djinn.discard();
                 return;
             }
 
-            System.out.println(
-                    "Djinn target position: " +
-                            reachablePos +
-                            " for suspicious block: " +
-                            djinn.getTargetBlockPos()
-            );
-
             currentPathTarget = null;
-
             updatePath();
         }
 
@@ -271,12 +297,8 @@ public class Djinn extends PathfinderMob {
 
             BlockPos suspiciousBlock = djinn.getTargetBlockPos();
 
-            if (suspiciousBlock == null ||
-                    !djinn.isSuspiciousBlock(
-                            djinn.level(),
-                            suspiciousBlock
-                    )) {
-
+            if (suspiciousBlock == null
+                    || !djinn.isSuspiciousBlock(djinn.level(), suspiciousBlock)) {
                 djinn.getNavigation().stop();
                 return;
             }
@@ -292,11 +314,6 @@ public class Djinn extends PathfinderMob {
             );
 
             if (distanceToTarget <= REACH_DISTANCE) {
-                System.out.println(
-                        "Djinn reached excavation position: " +
-                                reachablePos
-                );
-
                 djinn.getNavigation().stop();
                 djinn.spawnDisappearParticles();
                 djinn.discard();
@@ -328,7 +345,6 @@ public class Djinn extends PathfinderMob {
             }
 
             Vec3 current = djinn.position();
-
             Vec3 target = new Vec3(
                     reachablePos.getX() + 0.5D,
                     reachablePos.getY() + 0.5D,
@@ -338,23 +354,11 @@ public class Djinn extends PathfinderMob {
             double dx = target.x - current.x;
             double dy = target.y - current.y;
             double dz = target.z - current.z;
-
-            double distance = Math.sqrt(
-                    dx * dx +
-                            dy * dy +
-                            dz * dz
-            );
+            double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
             if (distance <= PATH_STEP_DISTANCE) {
                 currentPathTarget = reachablePos;
-
-                djinn.getNavigation().moveTo(
-                        target.x,
-                        target.y,
-                        target.z,
-                        speed
-                );
-
+                djinn.getNavigation().moveTo(target.x, target.y, target.z, speed);
                 return;
             }
 
@@ -373,23 +377,13 @@ public class Djinn extends PathfinderMob {
             );
 
             if (!canDjinnStandAt(intermediatePos)) {
-                BlockPos higherPos = findFreePositionAbove(
-                        intermediatePos,
-                        8
-                );
+                BlockPos higherPos = findFreePositionAbove(intermediatePos, 8);
 
                 if (higherPos != null) {
                     intermediatePos = higherPos;
                 } else {
                     currentPathTarget = reachablePos;
-
-                    djinn.getNavigation().moveTo(
-                            target.x,
-                            target.y,
-                            target.z,
-                            speed
-                    );
-
+                    djinn.getNavigation().moveTo(target.x, target.y, target.z, speed);
                     return;
                 }
             }
@@ -411,11 +405,7 @@ public class Djinn extends PathfinderMob {
                 return null;
             }
 
-            int minY = Math.max(
-                    target.getY(),
-                    djinn.level().getMinY()
-            );
-
+            int minY = Math.max(target.getY(), djinn.level().getMinY());
             int maxY = Math.min(
                     target.getY() + MAX_SEARCH_HEIGHT,
                     djinn.level().getMaxY() - 2
@@ -428,11 +418,9 @@ public class Djinn extends PathfinderMob {
                         target.getZ()
                 );
 
-                if (!canDjinnStandAt(candidate)) {
-                    continue;
+                if (canDjinnStandAt(candidate)) {
+                    return candidate;
                 }
-
-                return candidate;
             }
 
             return null;
@@ -440,7 +428,6 @@ public class Djinn extends PathfinderMob {
 
         private boolean canDjinnStandAt(BlockPos pos) {
             Level level = djinn.level();
-
 
             double x = pos.getX() + 0.5D;
             double y = pos.getY();
@@ -473,12 +460,12 @@ public class Djinn extends PathfinderMob {
 
         @Override
         public boolean canContinueToUse() {
-            return reachablePos != null &&
-                    djinn.getTargetBlockPos() != null &&
-                    djinn.isSuspiciousBlock(
-                            djinn.level(),
-                            djinn.getTargetBlockPos()
-                    );
+            return reachablePos != null
+                    && djinn.getTargetBlockPos() != null
+                    && djinn.isSuspiciousBlock(
+                    djinn.level(),
+                    djinn.getTargetBlockPos()
+            );
         }
 
         @Override
@@ -495,12 +482,11 @@ public class Djinn extends PathfinderMob {
             return;
         }
 
-        DustColorTransitionOptions particle =
-                new DustColorTransitionOptions(
-                        0xFFFF00,
-                        0xFFAA00,
-                        1.5F
-                );
+        DustColorTransitionOptions particle = new DustColorTransitionOptions(
+                0xFFFF00,
+                0xFFAA00,
+                1.5F
+        );
 
         serverLevel.sendParticles(
                 particle,
@@ -515,8 +501,50 @@ public class Djinn extends PathfinderMob {
         );
     }
 
+    private void spawnTrailParticles() {
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        DustColorTransitionOptions particle = new DustColorTransitionOptions(
+                0xFFFF00,
+                0xFFAA00,
+                0.7F
+        );
+
+        Vec3 movement = getDeltaMovement();
+        double length = movement.length();
+
+        if (length < 0.001D) {
+            return;
+        }
+
+        Vec3 direction = movement.normalize();
+        double backDistance = 0.6D;
+
+        double x = getX() - direction.x * backDistance;
+        double y = getY() + getBbHeight() * 0.5D - direction.y * backDistance;
+        double z = getZ() - direction.z * backDistance;
+
+        serverLevel.sendParticles(
+                particle,
+                x,
+                y,
+                z,
+                2,
+                0.08D,
+                0.08D,
+                0.08D,
+                0.0D
+        );
+    }
+
     @Override
     public void tick() {
         super.tick();
+
+        if (!level().isClientSide()) {
+            spawnTrailParticles();
+        }
     }
 }

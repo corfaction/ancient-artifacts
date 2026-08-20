@@ -1,14 +1,43 @@
 package net.corfaction.ancientartifacts.client;
 
-import net.corfaction.ancientartifacts.client.entity.DjinnRenderer;
+import net.corfaction.ancientartifacts.api.GuardianGhostHolder;
+import net.corfaction.ancientartifacts.block.menu.ModMenuTypes;
+import net.corfaction.ancientartifacts.client.entity.djinn.DjinnRenderer;
+import net.corfaction.ancientartifacts.client.entity.guardian_ghost.GuardianGhostModel;
+import net.corfaction.ancientartifacts.client.gui.ArchaeologicalTableScreen;
 import net.corfaction.ancientartifacts.entity.ModEntityTypes;
+import net.corfaction.ancientartifacts.network.GuardianGhostStatePayload;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 
-public class AncientArtifactsClient implements ClientModInitializer {
+public final class AncientArtifactsClient implements ClientModInitializer {
+
 	@Override
 	public void onInitializeClient() {
-		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		EntityRenderers.register(ModEntityTypes.DJINN, DjinnRenderer::new);
+		MenuScreens.register(
+				ModMenuTypes.ARCHAEOLOGICAL_TABLE,
+				ArchaeologicalTableScreen::new
+		);
+
+		GuardianGhostModel.registerModelLayers();
+
+		ClientPlayNetworking.registerGlobalReceiver(
+				GuardianGhostStatePayload.TYPE,
+				(payload, context) -> context.client().execute(() -> {
+					if (context.client().player == null) {
+						return;
+					}
+
+					GuardianGhostHolder ghostHolder =
+							(GuardianGhostHolder) context.client().player;
+
+					ghostHolder.ancientArtifacts$setGuardianGhost(
+							payload.enabled()
+					);
+				})
+		);
 	}
 }

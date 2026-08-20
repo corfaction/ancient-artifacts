@@ -15,90 +15,110 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-public class MysteriousLamp extends Item {
+public final class MysteriousLamp extends Item {
 
     public MysteriousLamp(Properties properties) {
         super(properties);
     }
 
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(
+            Level level,
+            Player player,
+            InteractionHand hand
+    ) {
         ItemStack stack = player.getItemInHand(hand);
 
-        if (!level.isClientSide()) {
-            BlockPos spawnPos = findSpawnPosition(level, player);
-
-            if (spawnPos != null) {
-                // Создаем джинна
-                Djinn djinn = new Djinn(ModEntityTypes.DJINN, level);
-                djinn.setPos(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
-                djinn.setYRot(player.getYRot());
-                djinn.setXRot(0);
-
-                // Добавляем джинна в мир
-                level.addFreshEntity(djinn);
-
-                // Звуковой эффект
-                level.playSound(null, player.blockPosition(), SoundEvents.ALLAY_AMBIENT_WITHOUT_ITEM,
-                        SoundSource.PLAYERS, 1.0f, 1.0f);
-
-                // Эффект частиц
-                if (level instanceof ServerLevel serverLevel) {
-                    serverLevel.sendParticles(
-                            ParticleTypes.LARGE_SMOKE,
-                            spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5,
-                            10, 0.5, 0.5, 0.5, 0.1
-                    );
-                }
-
-                // Уменьшаем количество предметов
-                if (!player.getAbilities().instabuild) {
-                    stack.shrink(1);
-                }
-
-                return InteractionResult.SUCCESS;
-            }
+        if (level.isClientSide()) {
+            return InteractionResult.PASS;
         }
 
-        return InteractionResult.PASS;
+        BlockPos spawnPos = findSpawnPosition(level, player);
+
+        if (spawnPos == null) {
+            return InteractionResult.PASS;
+        }
+
+        Djinn djinn = new Djinn(ModEntityTypes.DJINN, level);
+
+        djinn.setPos(
+                spawnPos.getX() + 0.5D,
+                spawnPos.getY(),
+                spawnPos.getZ() + 0.5D
+        );
+
+        djinn.setYRot(player.getYRot());
+        djinn.setXRot(0.0F);
+
+        level.addFreshEntity(djinn);
+
+        level.playSound(
+                null,
+                player.blockPosition(),
+                SoundEvents.ALLAY_AMBIENT_WITHOUT_ITEM,
+                SoundSource.PLAYERS,
+                1.0F,
+                1.0F
+        );
+
+        if (level instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(
+                    ParticleTypes.LARGE_SMOKE,
+                    spawnPos.getX() + 0.5D,
+                    spawnPos.getY(),
+                    spawnPos.getZ() + 0.5D,
+                    10,
+                    0.5D,
+                    0.5D,
+                    0.5D,
+                    0.1D
+            );
+        }
+
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
+
+        return InteractionResult.SUCCESS;
     }
 
     private BlockPos findSpawnPosition(Level level, Player player) {
         Vec3 lookVec = player.getLookAngle();
         Vec3 playerPos = player.position();
 
-        // Проверяем позиции на расстоянии 2-3 блока от игрока
         for (int distance = 2; distance <= 3; distance++) {
             double x = playerPos.x + lookVec.x * distance;
             double y = playerPos.y + player.getEyeHeight() + lookVec.y * distance;
             double z = playerPos.z + lookVec.z * distance;
 
-            BlockPos checkPos = new BlockPos((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
+            BlockPos checkPos = BlockPos.containing(x, y, z);
 
-            if (level.getBlockState(checkPos).isAir() &&
-                    level.getBlockState(checkPos.above()).isAir()) {
+            if (level.getBlockState(checkPos).isAir()
+                    && level.getBlockState(checkPos.above()).isAir()) {
                 return checkPos;
             }
 
             BlockPos abovePos = checkPos.above();
-            if (level.getBlockState(abovePos).isAir() &&
-                    level.getBlockState(abovePos.above()).isAir()) {
+
+            if (level.getBlockState(abovePos).isAir()
+                    && level.getBlockState(abovePos.above()).isAir()) {
                 return abovePos;
             }
 
             BlockPos belowPos = checkPos.below();
-            if (level.getBlockState(belowPos).isAir() &&
-                    level.getBlockState(belowPos.above()).isAir()) {
+
+            if (level.getBlockState(belowPos).isAir()
+                    && level.getBlockState(belowPos.above()).isAir()) {
                 return belowPos;
             }
         }
 
-        // Если не нашли, проверяем вокруг игрока
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
                 BlockPos checkPos = player.blockPosition().offset(dx, 1, dz);
-                if (level.getBlockState(checkPos).isAir() &&
-                        level.getBlockState(checkPos.above()).isAir()) {
+
+                if (level.getBlockState(checkPos).isAir()
+                        && level.getBlockState(checkPos.above()).isAir()) {
                     return checkPos;
                 }
             }
