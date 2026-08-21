@@ -1,15 +1,11 @@
 package net.corfaction.ancientartifacts.client;
 
-import net.corfaction.ancientartifacts.api.GuardianGhostHolder;
 import net.corfaction.ancientartifacts.block.menu.ModMenuTypes;
 import net.corfaction.ancientartifacts.client.entity.ModEntityModelLayers;
-import net.corfaction.ancientartifacts.client.entity.ancient_ghost.AncientGhostModel;
 import net.corfaction.ancientartifacts.client.entity.ancient_ghost.AncientGhostRenderer;
 import net.corfaction.ancientartifacts.client.entity.djinn.DjinnRenderer;
-import net.corfaction.ancientartifacts.client.entity.guardian_ghost.GuardianGhostModel;
 import net.corfaction.ancientartifacts.client.gui.ArchaeologicalTableScreen;
 import net.corfaction.ancientartifacts.entity.ModEntityTypes;
-import net.corfaction.ancientartifacts.network.GuardianGhostStatePayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -28,21 +24,5 @@ public final class AncientArtifactsClient implements ClientModInitializer {
 		);
 
 		ModEntityModelLayers.registerModelLayers();
-
-		ClientPlayNetworking.registerGlobalReceiver(
-				GuardianGhostStatePayload.TYPE,
-				(payload, context) -> context.client().execute(() -> {
-					if (context.client().player == null) {
-						return;
-					}
-
-					GuardianGhostHolder ghostHolder =
-							(GuardianGhostHolder) context.client().player;
-
-					ghostHolder.ancientArtifacts$setGuardianGhost(
-							payload.enabled()
-					);
-				})
-		);
 	}
 }

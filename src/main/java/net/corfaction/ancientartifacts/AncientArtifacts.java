@@ -1,6 +1,5 @@
 package net.corfaction.ancientartifacts;
 
-import net.corfaction.ancientartifacts.api.GuardianGhostHolder;
 import net.corfaction.ancientartifacts.artifact.ArchaeologicalRecipes;
 import net.corfaction.ancientartifacts.block.ModBlocks;
 import net.corfaction.ancientartifacts.block.entity.ArchaeologicalTableBlockEntity;
@@ -10,10 +9,8 @@ import net.corfaction.ancientartifacts.block.menu.ModMenuTypes;
 import net.corfaction.ancientartifacts.entity.ModEntity;
 import net.corfaction.ancientartifacts.item.ModItems;
 import net.corfaction.ancientartifacts.network.CleanArchaeologicalPixelPayload;
-import net.corfaction.ancientartifacts.network.GuardianGhostStatePayload;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
@@ -36,11 +33,6 @@ public final class AncientArtifacts implements ModInitializer {
 		PayloadTypeRegistry.serverboundPlay().register(
 				CleanArchaeologicalPixelPayload.TYPE,
 				CleanArchaeologicalPixelPayload.CODEC
-		);
-
-		PayloadTypeRegistry.clientboundPlay().register(
-				GuardianGhostStatePayload.TYPE,
-				GuardianGhostStatePayload.CODEC
 		);
 
 		ServerPlayNetworking.registerGlobalReceiver(
@@ -69,18 +61,6 @@ public final class AncientArtifacts implements ModInitializer {
 					);
 				})
 		);
-
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			GuardianGhostHolder ghostHolder =
-					(GuardianGhostHolder) handler.getPlayer();
-
-			ServerPlayNetworking.send(
-					handler.getPlayer(),
-					new GuardianGhostStatePayload(
-							ghostHolder.ancientArtifacts$hasGuardianGhost()
-					)
-			);
-		});
 
 		ArchaeologicalRecipes.registerArchaeologicalRecipes();
 	}

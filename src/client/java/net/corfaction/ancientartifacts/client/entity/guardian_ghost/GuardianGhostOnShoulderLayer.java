@@ -3,8 +3,9 @@ package net.corfaction.ancientartifacts.client.entity.guardian_ghost;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.corfaction.ancientartifacts.AncientArtifacts;
-import net.corfaction.ancientartifacts.api.GuardianGhostHolder;
+import net.corfaction.ancientartifacts.api.ArtifactRenderStateHolder;
 import net.corfaction.ancientartifacts.client.entity.ModEntityModelLayers;
+import net.corfaction.ancientartifacts.item.ModItemIds;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -14,6 +15,7 @@ import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
 
 public final class GuardianGhostOnShoulderLayer
         extends RenderLayer<AvatarRenderState, PlayerModel> {
@@ -28,6 +30,7 @@ public final class GuardianGhostOnShoulderLayer
             EntityModelSet modelSet
     ) {
         super(renderer);
+
         this.model = new GuardianGhostModel(
                 modelSet.bakeLayer(ModEntityModelLayers.GUARDIAN_GHOST)
         );
@@ -42,9 +45,15 @@ public final class GuardianGhostOnShoulderLayer
             float yRot,
             float xRot
     ) {
-        GuardianGhostHolder ghostHolder = (GuardianGhostHolder) state;
+        ItemStack artifact =
+                ((ArtifactRenderStateHolder) state)
+                        .ancientArtifacts$getArtifact();
 
-        if (!ghostHolder.ancientArtifacts$hasGuardianGhost()) {
+        if (artifact.isEmpty()) {
+            return;
+        }
+
+        if (!artifact.is(ModItemIds.GUARDIAN_TALISMAN)) {
             return;
         }
 
@@ -69,11 +78,21 @@ public final class GuardianGhostOnShoulderLayer
         poseStack.pushPose();
 
         float time = (System.currentTimeMillis() % 3000L) / 1000.0F;
-        float hoverOffset = (float) Math.sin(time * Math.PI * 2.0D) * 0.05F;
-        float rotationOffset = (float) Math.sin(time * Math.PI * 2.0D) * 2.0F;
-        float baseY = (playerState.isCrouching ? -1.3F : -1.5F) - 0.2F;
+        float hoverOffset =
+                (float) Math.sin(time * Math.PI * 2.0D) * 0.05F;
 
-        poseStack.translate(0.6F, baseY + hoverOffset, -0.0625F);
+        float rotationOffset =
+                (float) Math.sin(time * Math.PI * 2.0D) * 2.0F;
+
+        float baseY =
+                (playerState.isCrouching ? -1.3F : -1.5F) - 0.2F;
+
+        poseStack.translate(
+                0.6F,
+                baseY + hoverOffset,
+                -0.0625F
+        );
+
         poseStack.rotateAround(
                 Axis.XP.rotationDegrees(rotationOffset),
                 0.0F,
@@ -81,7 +100,9 @@ public final class GuardianGhostOnShoulderLayer
                 0.0F
         );
 
-        LivingEntityRenderState ghostState = new LivingEntityRenderState();
+        LivingEntityRenderState ghostState =
+                new LivingEntityRenderState();
+
         ghostState.yRot = yRot;
         ghostState.xRot = xRot;
 

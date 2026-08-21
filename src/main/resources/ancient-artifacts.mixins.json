@@ -6,6 +6,10 @@
     "ancient_ghost.BrushableBlockEntityMixin",
     "anvil.AnvilMenuAccessor",
     "anvil.AnvilMenuMixin",
+    "artifact_slot.AbstractContainerMenuInvoker",
+    "artifact_slot.InventoryLoadMixin",
+    "artifact_slot.InventoryMenuMixin",
+    "artifact_slot.InventoryMixin",
     "guardian_ghost.PlayerMixin"
   ],
   "injectors": {

@@ -32,12 +32,10 @@ public class BrushableBlockEntityMixin {
             return;
         }
 
-        // 10% шанс
-        if (level.getRandom().nextFloat() >= 1.00F) {
+        if (level.getRandom().nextFloat() >= 0.1F) {
             return;
         }
 
-        // От 1 до 4 призраков
         int count = 1 + level.getRandom().nextInt(4);
 
         for (int i = 0; i < count; i++) {

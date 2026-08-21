@@ -1,22 +1,24 @@
 package net.corfaction.ancientartifacts.client.mixin.guardian_ghost;
 
-import net.corfaction.ancientartifacts.api.GuardianGhostHolder;
+import net.corfaction.ancientartifacts.api.ArtifactRenderStateHolder;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(AvatarRenderState.class)
-public class AvatarRenderStateMixin implements GuardianGhostHolder {
+public final class AvatarRenderStateMixin implements ArtifactRenderStateHolder {
+
     @Unique
-    private boolean ancientArtifacts$hasGuardianGhost;
+    private ItemStack ancientArtifacts$artifact = ItemStack.EMPTY;
 
     @Override
-    public boolean ancientArtifacts$hasGuardianGhost() {
-        return ancientArtifacts$hasGuardianGhost;
+    public ItemStack ancientArtifacts$getArtifact() {
+        return ancientArtifacts$artifact;
     }
 
     @Override
-    public void ancientArtifacts$setGuardianGhost(boolean value) {
-        ancientArtifacts$hasGuardianGhost = value;
+    public void ancientArtifacts$setArtifact(ItemStack stack) {
+        ancientArtifacts$artifact = stack;
     }
 }
