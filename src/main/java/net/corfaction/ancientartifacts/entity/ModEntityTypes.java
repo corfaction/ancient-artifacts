@@ -22,8 +22,11 @@ public final class ModEntityTypes {
                     .sized(0.5F, 0.2F)
     );
 
-    private ModEntityTypes() {
-    }
+    public static final EntityType<AncientGhost> ANCIENT_GHOST = register(
+            "ancient_ghost",
+            EntityType.Builder.of(AncientGhost::new, MobCategory.MONSTER)
+                    .sized(0.4F, 0.9F)
+    );
 
     private static <T extends Entity> EntityType<T> register(
             String name,
@@ -53,11 +56,23 @@ public final class ModEntityTypes {
                 DJINN,
                 Djinn.createAttributes()
         );
+
+        FabricDefaultAttributeRegistry.register(
+                ANCIENT_GHOST,
+                AncientGhost.createAttributes()
+        );
     }
 
     public static void registerSpawnPlacements() {
         SpawnPlacements.register(
                 DJINN,
+                SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                Monster::checkSurfaceMonstersSpawnRules
+        );
+
+        SpawnPlacements.register(
+                ANCIENT_GHOST,
                 SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Monster::checkSurfaceMonstersSpawnRules

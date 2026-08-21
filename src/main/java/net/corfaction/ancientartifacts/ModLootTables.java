@@ -66,7 +66,7 @@ public final class ModLootTables {
                     }
 
                     if (ARCHAEOLOGY_TABLES.contains(key)) {
-                        addPetrifiedTalisman(tableBuilder);
+                        addArchaeologicalItems(tableBuilder);
                     }
                 }
         );
@@ -82,11 +82,18 @@ public final class ModLootTables {
         );
     }
 
-    private static void addPetrifiedTalisman(LootTable.Builder tableBuilder) {
+    private static void addArchaeologicalItems(LootTable.Builder tableBuilder) {
         tableBuilder.modifyPools(pool ->
                 pool.add(
                         LootItem.lootTableItem(ModItems.PETRIFIED_TALISMAN)
-                                .setWeight(5)
+                                .setWeight(9)
+                )
+        );
+
+        tableBuilder.modifyPools(pool ->
+                pool.add(
+                        LootItem.lootTableItem(ModItems.ANCIENT_FRAGMENT)
+                                .setWeight(15)
                 )
         );
     }

@@ -2,6 +2,11 @@
   "item.ancient-artifacts.mysterious_lamp": "Mysterious Lamp",
   "item.ancient-artifacts.petrified_talisman": "Petrified Talisman",
   "item.ancient-artifacts.guardian_talisman": "Guardian Talisman",
+  "item.ancient-artifacts.ancient_fragment": "Ancient Fragment",
+  "item.ancient-artifacts.dirty_fragment": "Dirty Fragment",
+  "item.ancient-artifacts.rusty_metal_fragment": "Rusty Metal Fragment",
+  "item.ancient-artifacts.metal_fragment": "Metal Fragment",
+  "item.ancient-artifacts.ancient_ghost_spawn_egg": "Ancient Ghost Spawn Egg",
   "block.ancient-artifacts.archaeological_table": "Archaeological Table",
   "container.ancient-artifacts.archaeological_table": "Archaeological Table"
 }

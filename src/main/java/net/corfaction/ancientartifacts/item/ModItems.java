@@ -1,11 +1,13 @@
 package net.corfaction.ancientartifacts.item;
 
+import net.corfaction.ancientartifacts.entity.ModEntityTypes;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.SpawnEggItem;
 
 import java.util.function.Function;
 
@@ -27,6 +29,36 @@ public final class ModItems {
             ModItemIds.GUARDIAN_TALISMAN,
             GuardianTalisman::new,
             new Item.Properties().stacksTo(1)
+    );
+
+    public static final Item DIRTY_FRAGMENT = registerItem(
+            ModItemIds.DIRTY_FRAGMENT,
+            Item::new,
+            new Item.Properties()
+    );
+
+    public static final Item ANCIENT_FRAGMENT = registerItem(
+            ModItemIds.ANCIENT_FRAGMENT,
+            Item::new,
+            new Item.Properties()
+    );
+
+    public static final Item RUSTY_METAL_FRAGMENT = registerItem(
+            ModItemIds.RUSTY_METAL_FRAGMENT,
+            Item::new,
+            new Item.Properties()
+    );
+
+    public static final Item METAL_FRAGMENT = registerItem(
+            ModItemIds.METAL_FRAGMENT,
+            Item::new,
+            new Item.Properties()
+    );
+
+    public static final Item ANCIENT_GHOST_SPAWN_EGG = registerItem(
+            ModItemIds.ANCIENT_GHOST_SPAWN_EGG,
+            SpawnEggItem::new,
+            new Item.Properties().spawnEgg(ModEntityTypes.ANCIENT_GHOST)
     );
 
     private ModItems() {
@@ -57,5 +89,20 @@ public final class ModItems {
 
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES)
                 .register(creativeTab -> creativeTab.accept(GUARDIAN_TALISMAN));
+
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS)
+                .register(creativeTab -> creativeTab.accept(DIRTY_FRAGMENT));
+
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS)
+                .register(creativeTab -> creativeTab.accept(ANCIENT_FRAGMENT));
+
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS)
+                .register(creativeTab -> creativeTab.accept(RUSTY_METAL_FRAGMENT));
+
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS)
+                .register(creativeTab -> creativeTab.accept(METAL_FRAGMENT));
+
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.SPAWN_EGGS)
+                .register(creativeTab -> creativeTab.accept(ANCIENT_GHOST_SPAWN_EGG));
     }
 }

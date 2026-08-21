@@ -16,9 +16,6 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 
 public final class GuardianGhostModel extends EntityModel<LivingEntityRenderState> {
 
-	public static final ModelLayerLocation LAYER_LOCATION =
-			new ModelLayerLocation(AncientArtifacts.id("guardian_ghost_model"), "main");
-
 	private final ModelPart body;
 
 	public GuardianGhostModel(ModelPart root) {
@@ -26,14 +23,7 @@ public final class GuardianGhostModel extends EntityModel<LivingEntityRenderStat
 		this.body = root.getChild(PartNames.BODY);
 	}
 
-	public static void registerModelLayers() {
-		ModelLayerRegistry.registerModelLayer(
-				LAYER_LOCATION,
-				GuardianGhostModel::createBodyLayer
-		);
-	}
-
-	public static LayerDefinition createBodyLayer() {
+	public static LayerDefinition getTexturedModelData() {
 		MeshDefinition meshDefinition = new MeshDefinition();
 		PartDefinition root = meshDefinition.getRoot();
 

@@ -1,6 +1,7 @@
 package net.corfaction.ancientartifacts;
 
 import net.corfaction.ancientartifacts.api.GuardianGhostHolder;
+import net.corfaction.ancientartifacts.artifact.ArchaeologicalRecipes;
 import net.corfaction.ancientartifacts.block.ModBlocks;
 import net.corfaction.ancientartifacts.block.entity.ArchaeologicalTableBlockEntity;
 import net.corfaction.ancientartifacts.block.entity.ModBlockEntityTypes;
@@ -80,6 +81,8 @@ public final class AncientArtifacts implements ModInitializer {
 					)
 			);
 		});
+
+		ArchaeologicalRecipes.registerArchaeologicalRecipes();
 	}
 
 	public static Identifier id(String path) {

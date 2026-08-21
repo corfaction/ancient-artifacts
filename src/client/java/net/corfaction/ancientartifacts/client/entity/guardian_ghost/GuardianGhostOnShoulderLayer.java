@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.corfaction.ancientartifacts.AncientArtifacts;
 import net.corfaction.ancientartifacts.api.GuardianGhostHolder;
+import net.corfaction.ancientartifacts.client.entity.ModEntityModelLayers;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -28,7 +29,7 @@ public final class GuardianGhostOnShoulderLayer
     ) {
         super(renderer);
         this.model = new GuardianGhostModel(
-                modelSet.bakeLayer(GuardianGhostModel.LAYER_LOCATION)
+                modelSet.bakeLayer(ModEntityModelLayers.GUARDIAN_GHOST)
         );
     }
 

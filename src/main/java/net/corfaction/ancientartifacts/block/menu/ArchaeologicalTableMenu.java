@@ -1,5 +1,6 @@
 package net.corfaction.ancientartifacts.block.menu;
 
+import net.corfaction.ancientartifacts.artifact.ArchaeologicalRecipes;
 import net.corfaction.ancientartifacts.block.entity.ArchaeologicalTableBlockEntity;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -72,6 +73,10 @@ public class ArchaeologicalTableMenu
         this.container = container;
         this.data = data;
 
+        /*
+         * Archaeological table slots.
+         */
+
         this.addSlot(
                 new BrushSlot(
                         container,
@@ -108,7 +113,15 @@ public class ArchaeologicalTableMenu
                 )
         );
 
+        /*
+         * Pixel cleaning data.
+         */
+
         this.addDataSlots(data);
+
+        /*
+         * Player inventory.
+         */
 
         this.addStandardInventorySlots(
                 inventory,
@@ -121,11 +134,19 @@ public class ArchaeologicalTableMenu
         return this.container;
     }
 
+    /**
+     * Returns whether the specified artifact pixel
+     * has already been cleaned.
+     */
     public boolean isPixelCleaned(
             int x,
             int y
     ) {
-        if (x < 0 || x >= 16 || y < 0 || y >= 16) {
+        if (x < 0
+                || x >= 16
+                || y < 0
+                || y >= 16) {
+
             return false;
         }
 
@@ -161,6 +182,10 @@ public class ArchaeologicalTableMenu
 
         result = clickedStack.copy();
 
+        /*
+         * Moving an item from the archaeological table
+         * back into the player's inventory.
+         */
         if (slotIndex < TABLE_SLOT_END) {
 
             if (!this.moveItemStackTo(
@@ -179,6 +204,9 @@ public class ArchaeologicalTableMenu
 
         } else {
 
+            /*
+             * Player inventory -> brush slot.
+             */
             if (BrushSlot.mayPlaceItem(clickedStack)) {
 
                 if (!this.moveItemStackTo(
@@ -190,6 +218,9 @@ public class ArchaeologicalTableMenu
                     return ItemStack.EMPTY;
                 }
 
+                /*
+                 * Player inventory -> water slot.
+                 */
             } else if (WaterSlot.mayPlaceItem(clickedStack)) {
 
                 if (!this.moveItemStackTo(
@@ -201,6 +232,12 @@ public class ArchaeologicalTableMenu
                     return ItemStack.EMPTY;
                 }
 
+                /*
+                 * Player inventory -> archaeological input slot.
+                 *
+                 * This now accepts ANY item registered in
+                 * ArchaeologicalRecipes.
+                 */
             } else if (InputSlot.mayPlaceItem(clickedStack)) {
 
                 if (!this.moveItemStackTo(
@@ -217,12 +254,18 @@ public class ArchaeologicalTableMenu
             }
         }
 
+        /*
+         * Update the original slot.
+         */
         if (clickedStack.isEmpty()) {
             slot.setByPlayer(ItemStack.EMPTY);
         } else {
             slot.setChanged();
         }
 
+        /*
+         * Nothing was moved.
+         */
         if (clickedStack.getCount() == result.getCount()) {
             return ItemStack.EMPTY;
         }
@@ -235,6 +278,9 @@ public class ArchaeologicalTableMenu
         return result;
     }
 
+    /**
+     * Brush slot.
+     */
     private static class BrushSlot extends Slot {
 
         public BrushSlot(
@@ -243,7 +289,12 @@ public class ArchaeologicalTableMenu
                 int x,
                 int y
         ) {
-            super(container, slot, x, y);
+            super(
+                    container,
+                    slot,
+                    x,
+                    y
+            );
         }
 
         @Override
@@ -261,6 +312,9 @@ public class ArchaeologicalTableMenu
         }
     }
 
+    /**
+     * Water bucket slot.
+     */
     private static class WaterSlot extends Slot {
 
         public WaterSlot(
@@ -269,7 +323,12 @@ public class ArchaeologicalTableMenu
                 int x,
                 int y
         ) {
-            super(container, slot, x, y);
+            super(
+                    container,
+                    slot,
+                    x,
+                    y
+            );
         }
 
         @Override
@@ -287,6 +346,12 @@ public class ArchaeologicalTableMenu
         }
     }
 
+    /**
+     * Archaeological artifact input slot.
+     *
+     * Any item registered in ArchaeologicalRecipes
+     * can be inserted here.
+     */
     private static class InputSlot extends Slot {
 
         public InputSlot(
@@ -295,7 +360,12 @@ public class ArchaeologicalTableMenu
                 int x,
                 int y
         ) {
-            super(container, slot, x, y);
+            super(
+                    container,
+                    slot,
+                    x,
+                    y
+            );
         }
 
         @Override
@@ -304,10 +374,7 @@ public class ArchaeologicalTableMenu
         }
 
         public static boolean mayPlaceItem(ItemStack stack) {
-            return stack.is(
-                    net.corfaction.ancientartifacts.item.ModItems
-                            .PETRIFIED_TALISMAN
-            );
+            return ArchaeologicalRecipes.isValidInput(stack);
         }
 
         @Override
@@ -316,6 +383,11 @@ public class ArchaeologicalTableMenu
         }
     }
 
+    /**
+     * Result slot.
+     *
+     * Players cannot manually insert anything here.
+     */
     private static class ResultSlot extends Slot {
 
         public ResultSlot(
@@ -324,7 +396,12 @@ public class ArchaeologicalTableMenu
                 int x,
                 int y
         ) {
-            super(container, slot, x, y);
+            super(
+                    container,
+                    slot,
+                    x,
+                    y
+            );
         }
 
         @Override
