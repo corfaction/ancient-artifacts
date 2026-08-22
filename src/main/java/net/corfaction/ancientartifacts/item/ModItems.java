@@ -134,5 +134,8 @@ public final class ModItems {
 
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.COMBAT)
                 .register(creativeTab -> creativeTab.accept(ECHO_BLADE));
+
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES)
+                .register(creativeTab -> creativeTab.accept(ARCHAEOLOGIST_EYE));
     }
 }
