@@ -9,6 +9,7 @@
     "artifact_slot.AbstractContainerMenuInvoker",
     "artifact_slot.InventoryMenuMixin",
     "artifact_slot.InventoryMixin",
+    "artifact_slot.ServerGamePacketListenerImplMixin",
     "guardian_ghost.PlayerMixin",
     "phantom_sweep.PlayerMixin"
   ],

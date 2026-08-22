@@ -3,6 +3,7 @@
   "package": "net.corfaction.ancientartifacts.client.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
+    "GameRendererMixin",
     "guardian_ghost.AvatarRendererMixin",
     "guardian_ghost.AvatarRenderStateMixin",
     "guardian_ghost.LivingEntityRendererInvoker"
@@ -14,6 +15,6 @@
     "requireAnnotations": true
   },
   "mixins": [
-    "GameRendererMixin"
+    "CreativeModeInventoryScreenMixin"
   ]
 }
