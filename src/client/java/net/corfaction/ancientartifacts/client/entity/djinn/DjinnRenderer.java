@@ -6,9 +6,10 @@ import net.minecraft.client.model.animal.allay.AllayModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.client.renderer.entity.state.AllayRenderState;
 import net.minecraft.resources.Identifier;
 
-public final class DjinnRenderer extends MobRenderer<Djinn, DjinnRenderState, AllayModel> {
+public final class DjinnRenderer extends MobRenderer<Djinn, AllayRenderState, AllayModel> {
 
     private static final Identifier TEXTURE = AncientArtifacts.id("textures/entity/djinn.png");
 
@@ -17,12 +18,12 @@ public final class DjinnRenderer extends MobRenderer<Djinn, DjinnRenderState, Al
     }
 
     @Override
-    public DjinnRenderState createRenderState() {
-        return new DjinnRenderState();
+    public AllayRenderState createRenderState() {
+        return new AllayRenderState();
     }
 
     @Override
-    public Identifier getTextureLocation(DjinnRenderState state) {
+    public Identifier getTextureLocation(AllayRenderState state) {
         return TEXTURE;
     }
 }

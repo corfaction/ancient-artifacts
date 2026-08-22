@@ -1,8 +1,6 @@
 package net.corfaction.ancientartifacts.entity;
 
-import com.llamalad7.mixinextras.expression.impl.ast.expressions.IdentifierAssignmentExpression;
 import com.mojang.datafixers.util.Pair;
-import net.corfaction.ancientartifacts.AncientArtifacts;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
@@ -43,9 +41,9 @@ public final class Djinn extends PathfinderMob {
 
     @Override
     public boolean causeFallDamage(
-            final double fallDistance,
-            final float damageModifier,
-            final DamageSource damageSource
+            double fallDistance,
+            float damageModifier,
+            DamageSource damageSource
     ) {
         return false;
     }
@@ -61,10 +59,8 @@ public final class Djinn extends PathfinderMob {
     @Override
     protected PathNavigation createNavigation(Level level) {
         FlyingPathNavigation navigation = new FlyingPathNavigation(this, level);
-
         navigation.setCanOpenDoors(false);
         navigation.setCanFloat(true);
-
         return navigation;
     }
 
@@ -137,7 +133,6 @@ public final class Djinn extends PathfinderMob {
             );
 
             BlockPos searchPos = djinn.blockPosition();
-            int searchRadius = STRUCTURE_SEARCH_RADIUS;
 
             for (int attempt = 0; attempt < 1000; attempt++) {
                 Pair<BlockPos, Holder<Structure>> structure = level.getChunkSource()
@@ -146,7 +141,7 @@ public final class Djinn extends PathfinderMob {
                                 level,
                                 targets,
                                 searchPos,
-                                searchRadius,
+                                STRUCTURE_SEARCH_RADIUS,
                                 false
                         );
 
@@ -257,15 +252,13 @@ public final class Djinn extends PathfinderMob {
         private static final int MAX_SEARCH_HEIGHT = 32;
 
         private final Djinn djinn;
-        private final double speed;
+        private final double speed = 0.6D;
 
         private @Nullable BlockPos reachablePos;
         private @Nullable BlockPos currentPathTarget;
 
         private FlyToTargetBlockGoal(Djinn djinn) {
             this.djinn = djinn;
-            speed = 0.6D;
-
             setFlags(EnumSet.of(Flag.MOVE));
         }
 
@@ -307,11 +300,7 @@ public final class Djinn extends PathfinderMob {
             double targetY = reachablePos.getY() + 0.5D;
             double targetZ = reachablePos.getZ() + 0.5D;
 
-            double distanceToTarget = djinn.distanceToSqr(
-                    targetX,
-                    targetY,
-                    targetZ
-            );
+            double distanceToTarget = djinn.distanceToSqr(targetX, targetY, targetZ);
 
             if (distanceToTarget <= REACH_DISTANCE) {
                 djinn.getNavigation().stop();
@@ -366,14 +355,10 @@ public final class Djinn extends PathfinderMob {
             double directionY = dy / distance;
             double directionZ = dz / distance;
 
-            double intermediateX = current.x + directionX * PATH_STEP_DISTANCE;
-            double intermediateY = current.y + directionY * PATH_STEP_DISTANCE;
-            double intermediateZ = current.z + directionZ * PATH_STEP_DISTANCE;
-
             BlockPos intermediatePos = BlockPos.containing(
-                    intermediateX,
-                    intermediateY,
-                    intermediateZ
+                    current.x + directionX * PATH_STEP_DISTANCE,
+                    current.y + directionY * PATH_STEP_DISTANCE,
+                    current.z + directionZ * PATH_STEP_DISTANCE
             );
 
             if (!canDjinnStandAt(intermediatePos)) {
@@ -406,17 +391,10 @@ public final class Djinn extends PathfinderMob {
             }
 
             int minY = Math.max(target.getY(), djinn.level().getMinY());
-            int maxY = Math.min(
-                    target.getY() + MAX_SEARCH_HEIGHT,
-                    djinn.level().getMaxY() - 2
-            );
+            int maxY = Math.min(target.getY() + MAX_SEARCH_HEIGHT, djinn.level().getMaxY() - 2);
 
             for (int y = minY; y <= maxY; y++) {
-                BlockPos candidate = new BlockPos(
-                        target.getX(),
-                        y,
-                        target.getZ()
-                );
+                BlockPos candidate = new BlockPos(target.getX(), y, target.getZ());
 
                 if (canDjinnStandAt(candidate)) {
                     return candidate;
@@ -443,10 +421,7 @@ public final class Djinn extends PathfinderMob {
             );
         }
 
-        private @Nullable BlockPos findFreePositionAbove(
-                BlockPos start,
-                int maxDistance
-        ) {
+        private @Nullable BlockPos findFreePositionAbove(BlockPos start, int maxDistance) {
             for (int i = 1; i <= maxDistance; i++) {
                 BlockPos candidate = start.above(i);
 
@@ -462,16 +437,12 @@ public final class Djinn extends PathfinderMob {
         public boolean canContinueToUse() {
             return reachablePos != null
                     && djinn.getTargetBlockPos() != null
-                    && djinn.isSuspiciousBlock(
-                    djinn.level(),
-                    djinn.getTargetBlockPos()
-            );
+                    && djinn.isSuspiciousBlock(djinn.level(), djinn.getTargetBlockPos());
         }
 
         @Override
         public void stop() {
             djinn.getNavigation().stop();
-
             reachablePos = null;
             currentPathTarget = null;
         }
@@ -482,11 +453,8 @@ public final class Djinn extends PathfinderMob {
             return;
         }
 
-        DustColorTransitionOptions particle = new DustColorTransitionOptions(
-                0xFFFF00,
-                0xFFAA00,
-                1.5F
-        );
+        DustColorTransitionOptions particle =
+                new DustColorTransitionOptions(0xFFFF00, 0xFFAA00, 1.5F);
 
         serverLevel.sendParticles(
                 particle,
@@ -506,16 +474,12 @@ public final class Djinn extends PathfinderMob {
             return;
         }
 
-        DustColorTransitionOptions particle = new DustColorTransitionOptions(
-                0xFFFF00,
-                0xFFAA00,
-                0.7F
-        );
+        DustColorTransitionOptions particle =
+                new DustColorTransitionOptions(0xFFFF00, 0xFFAA00, 0.7F);
 
         Vec3 movement = getDeltaMovement();
-        double length = movement.length();
 
-        if (length < 0.001D) {
+        if (movement.lengthSqr() < 0.000001D) {
             return;
         }
 

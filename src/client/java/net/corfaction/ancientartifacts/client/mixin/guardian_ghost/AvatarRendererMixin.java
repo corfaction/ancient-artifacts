@@ -47,19 +47,18 @@ public abstract class AvatarRendererMixin<
                 .ancientArtifacts$setArtifact(artifact.copy());
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings("unchecked")
     @Inject(method = "<init>", at = @At("TAIL"))
     private void ancientArtifacts$addGuardianGhostOnShoulderLayer(
             EntityRendererProvider.Context context,
             boolean slimSteve,
             CallbackInfo ci
     ) {
-        ((LivingEntityRendererInvoker<S, M>) this)
-                .ancientArtifacts$addLayer(
-                        (RenderLayer<S, M>) new GuardianGhostOnShoulderLayer(
-                                (AvatarRenderer) (Object) this,
-                                context.getModelSet()
-                        )
-                );
+        ((LivingEntityRendererInvoker<S, M>) this).ancientArtifacts$addLayer(
+                (RenderLayer<S, M>) new GuardianGhostOnShoulderLayer(
+                        (AvatarRenderer) (Object) this,
+                        context.getModelSet()
+                )
+        );
     }
 }

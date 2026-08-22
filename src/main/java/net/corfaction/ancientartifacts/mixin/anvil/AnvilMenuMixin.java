@@ -11,14 +11,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(AnvilMenu.class)
 public abstract class AnvilMenuMixin {
 
-    @Inject(
-            method = "createResult",
-            at = @At("HEAD"),
-            cancellable = true
-    )
+    @Inject(method = "createResult", at = @At("HEAD"), cancellable = true)
     private void ancientArtifacts$repairGuardianTalisman(CallbackInfo ci) {
         AnvilMenu menu = (AnvilMenu) (Object) this;
-
         ItemStack input = menu.getSlot(0).getItem();
         ItemStack addition = menu.getSlot(1).getItem();
 
@@ -28,48 +23,24 @@ public abstract class AnvilMenuMixin {
         }
 
         ItemStack result = input.copy();
-
         int price = 0;
-        int repairAmount = Math.min(
-                result.getDamageValue(),
-                result.getMaxDamage() / 4
-        );
+        int repairAmount = Math.min(result.getDamageValue(), result.getMaxDamage() / 4);
 
         if (repairAmount <= 0) {
             menu.getSlot(2).set(ItemStack.EMPTY);
-            ((AnvilMenuAccessor) menu)
-                    .ancientArtifacts$getCost()
-                    .set(0);
-
+            ((AnvilMenuAccessor) menu).ancientArtifacts$getCost().set(0);
             ci.cancel();
             return;
         }
 
-        int count;
-
-        for (
-                count = 0;
-                repairAmount > 0 && count < addition.getCount();
-                count++
-        ) {
-            int resultDamage = result.getDamageValue() - repairAmount;
-
-            result.setDamageValue(resultDamage);
-
+        for (int count = 0; repairAmount > 0 && count < addition.getCount(); count++) {
+            result.setDamageValue(result.getDamageValue() - repairAmount);
             price += 5;
-
-            repairAmount = Math.min(
-                    result.getDamageValue(),
-                    result.getMaxDamage() / 4
-            );
+            repairAmount = Math.min(result.getDamageValue(), result.getMaxDamage() / 4);
         }
 
-        ((AnvilMenuAccessor) menu)
-                .ancientArtifacts$getCost()
-                .set(price);
-
+        ((AnvilMenuAccessor) menu).ancientArtifacts$getCost().set(price);
         menu.getSlot(2).set(result);
-
         ci.cancel();
     }
 }

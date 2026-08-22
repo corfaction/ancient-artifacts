@@ -79,6 +79,12 @@ public final class ModItems {
             new Item.Properties().stacksTo(1)
     );
 
+    public static final Item ARCHAEOLOGIST_EYE = registerItem(
+            ModItemIds.ARCHAEOLOGIST_EYE,
+            ArchaeologistEye::new,
+            new Item.Properties().stacksTo(1)
+    );
+
     private ModItems() {
     }
 

@@ -8,25 +8,17 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.inventory.MenuType;
 
-public class ModMenuTypes {
+public final class ModMenuTypes {
 
     public static final MenuType<ArchaeologicalTableMenu> ARCHAEOLOGICAL_TABLE =
-            register(
-                    "archaeological_table",
-                    new MenuType<>(
-                            ArchaeologicalTableMenu::new,
-                            null
-                    )
-            );
+            register("archaeological_table", new MenuType<>(ArchaeologicalTableMenu::new, null));
 
-    private static <T extends MenuType<?>> T register(
-            String name,
-            T menuType
-    ) {
-        Identifier id = Identifier.fromNamespaceAndPath(AncientArtifacts.MOD_ID, name);
+    private ModMenuTypes() {
+    }
 
+    private static <T extends MenuType<?>> T register(String name, T menuType) {
+        Identifier id = AncientArtifacts.id(name);
         ResourceKey<MenuType<?>> key = ResourceKey.create(Registries.MENU, id);
-
         return Registry.register(BuiltInRegistries.MENU, key, menuType);
     }
 

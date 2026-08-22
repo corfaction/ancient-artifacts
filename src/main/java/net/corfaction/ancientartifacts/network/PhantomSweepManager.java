@@ -1,6 +1,7 @@
 package net.corfaction.ancientartifacts.network;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -10,6 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -17,119 +19,69 @@ import java.util.Map;
 
 public final class PhantomSweepManager {
 
-    /*
-     * Задержка между обычным ударом
-     * и фантомным.
-     */
     private static final int DELAY = 20;
-
-    /*
-     * Phantom Sweep наносит:
-     *
-     * фактический урон обычного удара * 0.5
-     */
     private static final float DAMAGE_MULTIPLIER = 0.5F;
 
-    /*
-     * Здоровье цели перед обычным ударом.
-     */
     private static final Map<PlayerTargetKey, Float> PREVIOUS_HEALTH =
             new HashMap<>();
 
-    private static final List<PendingSweep> PENDING =
-            new java.util.ArrayList<>();
+    private static final List<PendingSweep> PENDING = new ArrayList<>();
 
     private PhantomSweepManager() {
     }
 
-    /**
-     * Сохраняем здоровье цели непосредственно
-     * перед выполнением Player.attack().
-     */
-    public static void captureDamage(
-            Player player,
-            LivingEntity target
-    ) {
+    public static void captureDamage(Player player, LivingEntity target) {
         PREVIOUS_HEALTH.put(
                 new PlayerTargetKey(player, target),
                 target.getHealth()
         );
     }
 
-    /**
-     * Получаем фактический урон, нанесённый
-     * обычной атакой.
-     */
     public static float getCapturedDamage(
             Player player,
             LivingEntity target
     ) {
-        PlayerTargetKey key =
-                new PlayerTargetKey(player, target);
-
-        Float previousHealth =
-                PREVIOUS_HEALTH.remove(key);
+        Float previousHealth = PREVIOUS_HEALTH.remove(
+                new PlayerTargetKey(player, target)
+        );
 
         if (previousHealth == null) {
             return 0.0F;
         }
 
-        float currentHealth =
-                target.getHealth();
-
-        float damage =
-                previousHealth - currentHealth;
-
-        return Math.max(damage, 0.0F);
+        return Math.max(previousHealth - target.getHealth(), 0.0F);
     }
 
-    /**
-     * Запланировать фантомный удар.
-     */
     public static void schedule(
             ServerLevel level,
             Player player,
             LivingEntity target,
             float damage
     ) {
-        PENDING.add(
-                new PendingSweep(
-                        level,
-                        player,
-                        target,
-                        damage,
-                        player.getX(),
-                        player.getY(),
-                        player.getZ(),
-                        player.getYRot(),
-                        DELAY
-                )
-        );
+        PENDING.add(new PendingSweep(
+                level,
+                player,
+                target,
+                damage,
+                player.getX(),
+                player.getY(),
+                player.getZ(),
+                player.getYRot(),
+                DELAY
+        ));
     }
 
-    /**
-     * Вызывается один раз за серверный тик.
-     */
     public static void tick() {
-
-        Iterator<PendingSweep> iterator =
-                PENDING.iterator();
+        Iterator<PendingSweep> iterator = PENDING.iterator();
 
         while (iterator.hasNext()) {
-
-            PendingSweep sweep =
-                    iterator.next();
-
-            if (sweep.tick()) {
+            if (iterator.next().tick()) {
                 iterator.remove();
             }
         }
     }
 
-    private record PlayerTargetKey(
-            Player player,
-            LivingEntity target
-    ) {
+    private record PlayerTargetKey(Player player, LivingEntity target) {
     }
 
     private static final class PendingSweep {
@@ -137,18 +89,11 @@ public final class PhantomSweepManager {
         private final ServerLevel level;
         private final Player player;
         private final LivingEntity target;
-
-        /*
-         * Реальный урон обычной атаки.
-         */
         private final float damage;
-
         private final double x;
         private final double y;
         private final double z;
-
         private final float yRot;
-
         private int ticks;
 
         private PendingSweep(
@@ -165,80 +110,36 @@ public final class PhantomSweepManager {
             this.level = level;
             this.player = player;
             this.target = target;
-
             this.damage = damage;
-
             this.x = x;
             this.y = y;
             this.z = z;
-
             this.yRot = yRot;
-
             this.ticks = ticks;
         }
 
         private boolean tick() {
-
-            ticks--;
-
-            if (ticks > 0) {
+            if (--ticks > 0) {
                 return false;
             }
 
-            /*
-             * Игрок или цель больше не существуют.
-             */
-            if (player.isRemoved()
-                    || target.isRemoved()
-                    || !target.isAlive()) {
-
+            if (player.isRemoved() || target.isRemoved() || !target.isAlive()) {
                 return true;
             }
 
             perform();
-
             return true;
         }
 
         private void perform() {
-
-            /*
-             * =====================================
-             * DAMAGE
-             * =====================================
-             */
-
-            DamageSource damageSource =
-                    player.createDamageSource();
-
-            /*
-             * Phantom Sweep =
-             *
-             * фактический урон обычного удара
-             * × DAMAGE_MULTIPLIER
-             */
-            float phantomDamage =
-                    damage * DAMAGE_MULTIPLIER;
-
+            DamageSource damageSource = player.createDamageSource();
             target.hurtServer(
                     level,
                     damageSource,
-                    phantomDamage
+                    damage * DAMAGE_MULTIPLIER
             );
 
-            /*
-             * =====================================
-             * SWEEP
-             * =====================================
-             */
-
             sendSweepToTrackingPlayers();
-
-            /*
-             * =====================================
-             * SOUND
-             * =====================================
-             */
 
             level.playSound(
                     null,
@@ -251,72 +152,37 @@ public final class PhantomSweepManager {
                     0.65F
             );
 
-            /*
-             * =====================================
-             * PARTICLES
-             * =====================================
-             */
-
             spawnBlueParticles();
         }
 
         private void sendSweepToTrackingPlayers() {
+            PhantomSweepPayload payload = new PhantomSweepPayload(
+                    x,
+                    y,
+                    z,
+                    yRot
+            );
 
-            PhantomSweepPayload payload =
-                    new PhantomSweepPayload(
-                            x,
-                            y,
-                            z,
-                            yRot
-                    );
-
-            /*
-             * Сам атакующий игрок.
-             */
             if (player instanceof ServerPlayer serverPlayer) {
-
-                ServerPlayNetworking.send(
-                        serverPlayer,
-                        payload
-                );
+                ServerPlayNetworking.send(serverPlayer, payload);
             }
 
-            /*
-             * Остальные игроки поблизости.
-             */
-            for (ServerPlayer other :
-                    level.players()) {
-
-                if (other == player) {
-                    continue;
-                }
-
-                if (other.distanceToSqr(
-                        x,
-                        y,
-                        z
-                ) <= 64.0D * 64.0D) {
-
-                    ServerPlayNetworking.send(
-                            other,
-                            payload
-                    );
+            for (ServerPlayer other : level.players()) {
+                if (other != player && other.distanceToSqr(x, y, z) <= 64.0D * 64.0D) {
+                    ServerPlayNetworking.send(other, payload);
                 }
             }
         }
 
         private void spawnBlueParticles() {
-
-            Vec3 center =
-                    target.position()
-                            .add(
-                                    0.0D,
-                                    target.getBbHeight() * 0.5D,
-                                    0.0D
-                            );
+            Vec3 center = target.position().add(
+                    0.0D,
+                    target.getBbHeight() * 0.5D,
+                    0.0D
+            );
 
             level.sendParticles(
-                    net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK,
+                    ParticleTypes.ELECTRIC_SPARK,
                     center.x,
                     center.y,
                     center.z,

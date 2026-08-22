@@ -13,39 +13,26 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public class ArchaeologicalTableMenu
-        extends AbstractContainerMenu {
+public class ArchaeologicalTableMenu extends AbstractContainerMenu {
 
-    private static final int BRUSH_SLOT = 0;
-    private static final int WATER_SLOT = 1;
-    private static final int INPUT_SLOT = 2;
-    private static final int RESULT_SLOT = 3;
+    private static final int BRUSH_SLOT = ArchaeologicalTableBlockEntity.BRUSH_SLOT;
+    private static final int WATER_SLOT = ArchaeologicalTableBlockEntity.WATER_SLOT;
+    private static final int INPUT_SLOT = ArchaeologicalTableBlockEntity.INPUT_SLOT;
+    private static final int RESULT_SLOT = ArchaeologicalTableBlockEntity.RESULT_SLOT;
 
-    private static final int TABLE_SLOT_START = 0;
-    private static final int TABLE_SLOT_END = 4;
-
-    private static final int INVENTORY_SLOT_START = 4;
-    private static final int INVENTORY_SLOT_END = 31;
-
-    private static final int HOTBAR_SLOT_START = 31;
+    private static final int TABLE_SLOT_END = ArchaeologicalTableBlockEntity.SLOT_COUNT;
+    private static final int INVENTORY_SLOT_START = TABLE_SLOT_END;
     private static final int HOTBAR_SLOT_END = 40;
 
     private final Container container;
     private final ContainerData data;
 
-    public ArchaeologicalTableMenu(
-            int containerId,
-            Inventory inventory
-    ) {
+    public ArchaeologicalTableMenu(int containerId, Inventory inventory) {
         this(
                 containerId,
                 inventory,
-                new SimpleContainer(
-                        ArchaeologicalTableBlockEntity.SLOT_COUNT
-                ),
-                new SimpleContainerData(
-                        ArchaeologicalTableBlockEntity.DATA_COUNT
-                )
+                new SimpleContainer(ArchaeologicalTableBlockEntity.SLOT_COUNT),
+                new SimpleContainerData(ArchaeologicalTableBlockEntity.DATA_COUNT)
         );
     }
 
@@ -55,140 +42,57 @@ public class ArchaeologicalTableMenu
             Container container,
             ContainerData data
     ) {
-        super(
-                ModMenuTypes.ARCHAEOLOGICAL_TABLE,
-                containerId
-        );
+        super(ModMenuTypes.ARCHAEOLOGICAL_TABLE, containerId);
 
-        checkContainerSize(
-                container,
-                ArchaeologicalTableBlockEntity.SLOT_COUNT
-        );
-
-        checkContainerDataCount(
-                data,
-                ArchaeologicalTableBlockEntity.DATA_COUNT
-        );
+        checkContainerSize(container, ArchaeologicalTableBlockEntity.SLOT_COUNT);
+        checkContainerDataCount(data, ArchaeologicalTableBlockEntity.DATA_COUNT);
 
         this.container = container;
         this.data = data;
 
-        /*
-         * Archaeological table slots.
-         */
+        addSlot(new BrushSlot(container, BRUSH_SLOT, 8, 18));
+        addSlot(new WaterSlot(container, WATER_SLOT, 31, 18));
+        addSlot(new InputSlot(container, INPUT_SLOT, 138, 18));
+        addSlot(new ResultSlot(container, RESULT_SLOT, 138, 58));
 
-        this.addSlot(
-                new BrushSlot(
-                        container,
-                        BRUSH_SLOT,
-                        8,
-                        18
-                )
-        );
-
-        this.addSlot(
-                new WaterSlot(
-                        container,
-                        WATER_SLOT,
-                        31,
-                        18
-                )
-        );
-
-        this.addSlot(
-                new InputSlot(
-                        container,
-                        INPUT_SLOT,
-                        138,
-                        18
-                )
-        );
-
-        this.addSlot(
-                new ResultSlot(
-                        container,
-                        RESULT_SLOT,
-                        138,
-                        58
-                )
-        );
-
-        /*
-         * Pixel cleaning data.
-         */
-
-        this.addDataSlots(data);
-
-        /*
-         * Player inventory.
-         */
-
-        this.addStandardInventorySlots(
-                inventory,
-                8,
-                84
-        );
+        addDataSlots(data);
+        addStandardInventorySlots(inventory, 8, 84);
     }
 
     public Container getContainer() {
-        return this.container;
+        return container;
     }
 
-    /**
-     * Returns whether the specified artifact pixel
-     * has already been cleaned.
-     */
-    public boolean isPixelCleaned(
-            int x,
-            int y
-    ) {
-        if (x < 0
-                || x >= 16
-                || y < 0
-                || y >= 16) {
-
+    public boolean isPixelCleaned(int x, int y) {
+        if (x < 0 || x >= 16 || y < 0 || y >= 16) {
             return false;
         }
 
         int index = y * 16 + x;
-
         int dataIndex = index / 16;
         int bitIndex = index % 16;
 
-        int value = this.data.get(dataIndex);
-
-        return (value & (1 << bitIndex)) != 0;
+        return (data.get(dataIndex) & (1 << bitIndex)) != 0;
     }
 
     @Override
     public boolean stillValid(Player player) {
-        return this.container.stillValid(player);
+        return container.stillValid(player);
     }
 
     @Override
-    public ItemStack quickMoveStack(
-            Player player,
-            int slotIndex
-    ) {
-        ItemStack result = ItemStack.EMPTY;
+    public ItemStack quickMoveStack(Player player, int slotIndex) {
+        Slot slot = slots.get(slotIndex);
 
-        Slot slot = this.slots.get(slotIndex);
-
-        if (slot == null || !slot.hasItem()) {
-            return result;
+        if (!slot.hasItem()) {
+            return ItemStack.EMPTY;
         }
 
         ItemStack clickedStack = slot.getItem();
+        ItemStack result = clickedStack.copy();
 
-        result = clickedStack.copy();
-
-        /*
-         * Moving an item from the archaeological table
-         * back into the player's inventory.
-         */
         if (slotIndex < TABLE_SLOT_END) {
-
-            if (!this.moveItemStackTo(
+            if (!moveItemStackTo(
                     clickedStack,
                     INVENTORY_SLOT_START,
                     HOTBAR_SLOT_END,
@@ -197,104 +101,41 @@ public class ArchaeologicalTableMenu
                 return ItemStack.EMPTY;
             }
 
-            slot.onQuickCraft(
-                    clickedStack,
-                    result
-            );
-
-        } else {
-
-            /*
-             * Player inventory -> brush slot.
-             */
-            if (BrushSlot.mayPlaceItem(clickedStack)) {
-
-                if (!this.moveItemStackTo(
-                        clickedStack,
-                        BRUSH_SLOT,
-                        BRUSH_SLOT + 1,
-                        false
-                )) {
-                    return ItemStack.EMPTY;
-                }
-
-                /*
-                 * Player inventory -> water slot.
-                 */
-            } else if (WaterSlot.mayPlaceItem(clickedStack)) {
-
-                if (!this.moveItemStackTo(
-                        clickedStack,
-                        WATER_SLOT,
-                        WATER_SLOT + 1,
-                        false
-                )) {
-                    return ItemStack.EMPTY;
-                }
-
-                /*
-                 * Player inventory -> archaeological input slot.
-                 *
-                 * This now accepts ANY item registered in
-                 * ArchaeologicalRecipes.
-                 */
-            } else if (InputSlot.mayPlaceItem(clickedStack)) {
-
-                if (!this.moveItemStackTo(
-                        clickedStack,
-                        INPUT_SLOT,
-                        INPUT_SLOT + 1,
-                        false
-                )) {
-                    return ItemStack.EMPTY;
-                }
-
-            } else {
+            slot.onQuickCraft(clickedStack, result);
+        } else if (BrushSlot.mayPlaceItem(clickedStack)) {
+            if (!moveItemStackTo(clickedStack, BRUSH_SLOT, BRUSH_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
+        } else if (WaterSlot.mayPlaceItem(clickedStack)) {
+            if (!moveItemStackTo(clickedStack, WATER_SLOT, WATER_SLOT + 1, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (InputSlot.mayPlaceItem(clickedStack)) {
+            if (!moveItemStackTo(clickedStack, INPUT_SLOT, INPUT_SLOT + 1, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else {
+            return ItemStack.EMPTY;
         }
 
-        /*
-         * Update the original slot.
-         */
         if (clickedStack.isEmpty()) {
             slot.setByPlayer(ItemStack.EMPTY);
         } else {
             slot.setChanged();
         }
 
-        /*
-         * Nothing was moved.
-         */
         if (clickedStack.getCount() == result.getCount()) {
             return ItemStack.EMPTY;
         }
 
-        slot.onTake(
-                player,
-                result
-        );
-
+        slot.onTake(player, result);
         return result;
     }
 
-    /**
-     * Brush slot.
-     */
     private static class BrushSlot extends Slot {
 
-        public BrushSlot(
-                Container container,
-                int slot,
-                int x,
-                int y
-        ) {
-            super(
-                    container,
-                    slot,
-                    x,
-                    y
-            );
+        public BrushSlot(Container container, int slot, int x, int y) {
+            super(container, slot, x, y);
         }
 
         @Override
@@ -312,23 +153,10 @@ public class ArchaeologicalTableMenu
         }
     }
 
-    /**
-     * Water bucket slot.
-     */
     private static class WaterSlot extends Slot {
 
-        public WaterSlot(
-                Container container,
-                int slot,
-                int x,
-                int y
-        ) {
-            super(
-                    container,
-                    slot,
-                    x,
-                    y
-            );
+        public WaterSlot(Container container, int slot, int x, int y) {
+            super(container, slot, x, y);
         }
 
         @Override
@@ -346,26 +174,10 @@ public class ArchaeologicalTableMenu
         }
     }
 
-    /**
-     * Archaeological artifact input slot.
-     *
-     * Any item registered in ArchaeologicalRecipes
-     * can be inserted here.
-     */
     private static class InputSlot extends Slot {
 
-        public InputSlot(
-                Container container,
-                int slot,
-                int x,
-                int y
-        ) {
-            super(
-                    container,
-                    slot,
-                    x,
-                    y
-            );
+        public InputSlot(Container container, int slot, int x, int y) {
+            super(container, slot, x, y);
         }
 
         @Override
@@ -383,25 +195,10 @@ public class ArchaeologicalTableMenu
         }
     }
 
-    /**
-     * Result slot.
-     *
-     * Players cannot manually insert anything here.
-     */
     private static class ResultSlot extends Slot {
 
-        public ResultSlot(
-                Container container,
-                int slot,
-                int x,
-                int y
-        ) {
-            super(
-                    container,
-                    slot,
-                    x,
-                    y
-            );
+        public ResultSlot(Container container, int slot, int x, int y) {
+            super(container, slot, x, y);
         }
 
         @Override

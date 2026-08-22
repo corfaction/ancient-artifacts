@@ -29,8 +29,7 @@ public class ExtraSlotContainer implements Container {
             return ItemStack.EMPTY;
         }
 
-        return ((PlayerInventoryAccess) inventory)
-                .ancientArtifacts$getExtraSlot();
+        return ((PlayerInventoryAccess) inventory).ancientArtifacts$getExtraSlot();
     }
 
     @Override
@@ -40,7 +39,6 @@ public class ExtraSlotContainer implements Container {
         }
 
         ItemStack stack = getItem(0);
-
         if (stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
@@ -52,7 +50,6 @@ public class ExtraSlotContainer implements Container {
         }
 
         setChanged();
-
         return result;
     }
 
@@ -64,7 +61,6 @@ public class ExtraSlotContainer implements Container {
 
         ItemStack stack = getItem(0);
         setItem(0, ItemStack.EMPTY);
-
         return stack;
     }
 
@@ -74,9 +70,7 @@ public class ExtraSlotContainer implements Container {
             return;
         }
 
-        ((PlayerInventoryAccess) inventory)
-                .ancientArtifacts$setExtraSlot(stack);
-
+        ((PlayerInventoryAccess) inventory).ancientArtifacts$setExtraSlot(stack);
         setChanged();
     }
 

@@ -37,6 +37,9 @@ public final class ModItemIds {
     public static final ResourceKey<Item> ECHO_BLADE =
             create("echo_blade");
 
+    public static final ResourceKey<Item> ARCHAEOLOGIST_EYE =
+            create("archaeologist_eye");
+
     public static ResourceKey<Item> create(String name) {
         return ResourceKey.create(
                 Registries.ITEM,

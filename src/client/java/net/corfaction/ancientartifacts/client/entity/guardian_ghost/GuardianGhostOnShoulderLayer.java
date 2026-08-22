@@ -17,8 +17,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
-public final class GuardianGhostOnShoulderLayer
-        extends RenderLayer<AvatarRenderState, PlayerModel> {
+public final class GuardianGhostOnShoulderLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 
     private static final Identifier TEXTURE =
             AncientArtifacts.id("textures/entity/guardian_ghost.png");
@@ -30,10 +29,7 @@ public final class GuardianGhostOnShoulderLayer
             EntityModelSet modelSet
     ) {
         super(renderer);
-
-        this.model = new GuardianGhostModel(
-                modelSet.bakeLayer(ModEntityModelLayers.GUARDIAN_GHOST)
-        );
+        model = new GuardianGhostModel(modelSet.bakeLayer(ModEntityModelLayers.GUARDIAN_GHOST));
     }
 
     @Override
@@ -45,54 +41,21 @@ public final class GuardianGhostOnShoulderLayer
             float yRot,
             float xRot
     ) {
-        ItemStack artifact =
-                ((ArtifactRenderStateHolder) state)
-                        .ancientArtifacts$getArtifact();
+        ItemStack artifact = ((ArtifactRenderStateHolder) state).ancientArtifacts$getArtifact();
 
-        if (artifact.isEmpty()) {
+        if (artifact.isEmpty() || !artifact.is(ModItemIds.GUARDIAN_TALISMAN)) {
             return;
         }
 
-        if (!artifact.is(ModItemIds.GUARDIAN_TALISMAN)) {
-            return;
-        }
-
-        submitOnShoulder(
-                poseStack,
-                submitNodeCollector,
-                lightCoords,
-                state,
-                yRot,
-                xRot
-        );
-    }
-
-    private void submitOnShoulder(
-            PoseStack poseStack,
-            SubmitNodeCollector submitNodeCollector,
-            int lightCoords,
-            AvatarRenderState playerState,
-            float yRot,
-            float xRot
-    ) {
         poseStack.pushPose();
 
         float time = (System.currentTimeMillis() % 3000L) / 1000.0F;
-        float hoverOffset =
-                (float) Math.sin(time * Math.PI * 2.0D) * 0.05F;
+        float animation = (float) Math.sin(time * Math.PI * 2.0D);
+        float hoverOffset = animation * 0.05F;
+        float rotationOffset = animation * 2.0F;
+        float baseY = (state.isCrouching ? -1.3F : -1.5F) - 0.2F;
 
-        float rotationOffset =
-                (float) Math.sin(time * Math.PI * 2.0D) * 2.0F;
-
-        float baseY =
-                (playerState.isCrouching ? -1.3F : -1.5F) - 0.2F;
-
-        poseStack.translate(
-                0.6F,
-                baseY + hoverOffset,
-                -0.0625F
-        );
-
+        poseStack.translate(0.6F, baseY + hoverOffset, -0.0625F);
         poseStack.rotateAround(
                 Axis.XP.rotationDegrees(rotationOffset),
                 0.0F,
@@ -100,9 +63,7 @@ public final class GuardianGhostOnShoulderLayer
                 0.0F
         );
 
-        LivingEntityRenderState ghostState =
-                new LivingEntityRenderState();
-
+        LivingEntityRenderState ghostState = new LivingEntityRenderState();
         ghostState.yRot = yRot;
         ghostState.xRot = xRot;
 
@@ -113,7 +74,7 @@ public final class GuardianGhostOnShoulderLayer
                 TEXTURE,
                 lightCoords,
                 OverlayTexture.NO_OVERLAY,
-                playerState.outlineColor,
+                state.outlineColor,
                 null
         );
 

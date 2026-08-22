@@ -1,5 +1,7 @@
 package net.corfaction.ancientartifacts.block;
 
+import java.util.function.Function;
+
 import net.corfaction.ancientartifacts.AncientArtifacts;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
@@ -15,16 +17,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
-import java.util.function.Function;
-
 public final class ModBlocks {
 
     public static final Block ARCHAEOLOGICAL_TABLE = register(
             "archaeological_table",
             ArchaeologicalTableBlock::new,
-            BlockBehaviour.Properties.of()
-                    .strength(2.0F)
-                    .sound(SoundType.WOOD),
+            BlockBehaviour.Properties.of().strength(2.0F).sound(SoundType.WOOD),
             CreativeModeTabs.FUNCTIONAL_BLOCKS
     );
 
@@ -44,18 +42,15 @@ public final class ModBlocks {
         Registry.register(BuiltInRegistries.BLOCK, blockKey, block);
 
         ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, id);
-
         BlockItem blockItem = new BlockItem(
                 block,
-                new Item.Properties()
-                        .setId(itemKey)
-                        .useBlockDescriptionPrefix()
+                new Item.Properties().setId(itemKey).useBlockDescriptionPrefix()
         );
 
         Registry.register(BuiltInRegistries.ITEM, itemKey, blockItem);
 
-        CreativeModeTabEvents.modifyOutputEvent(tab).register(creativeTab ->
-                creativeTab.accept(blockItem)
+        CreativeModeTabEvents.modifyOutputEvent(tab).register(
+                creativeTab -> creativeTab.accept(blockItem)
         );
 
         return block;

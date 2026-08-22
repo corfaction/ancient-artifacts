@@ -21,16 +21,10 @@ public class InventoryMenuMixin {
             CallbackInfo ci
     ) {
         InventoryMenu menu = (InventoryMenu) (Object) this;
+        ExtraSlotContainer container = new ExtraSlotContainer(inventory);
 
-        ExtraSlotContainer container =
-                new ExtraSlotContainer(inventory);
-
-        ((AbstractContainerMenuInvoker)menu).ancientArtifacts$addArtifactSlot(
-                new ExtraPlayerSlot(
-                        container,
-                        77,
-                        8
-                )
+        ((AbstractContainerMenuInvoker) menu).ancientArtifacts$addArtifactSlot(
+                new ExtraPlayerSlot(container, 77, 8)
         );
     }
 }

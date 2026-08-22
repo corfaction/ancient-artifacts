@@ -40,12 +40,8 @@ public final class ArchaeologicalTableBlock extends BaseEntityBlock {
             Player player,
             BlockHitResult hitResult
     ) {
-        if (!level.isClientSide()) {
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-
-            if (blockEntity instanceof ArchaeologicalTableBlockEntity table) {
-                player.openMenu(table);
-            }
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ArchaeologicalTableBlockEntity table) {
+            player.openMenu(table);
         }
 
         return InteractionResult.SUCCESS;

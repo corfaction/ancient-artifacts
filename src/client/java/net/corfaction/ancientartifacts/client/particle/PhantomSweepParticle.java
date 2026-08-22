@@ -24,72 +24,32 @@ public final class PhantomSweepParticle extends SingleQuadParticle {
             double xd,
             double yd,
             double zd,
-            SpriteSet sprites,
-            RandomSource random
+            SpriteSet sprites
     ) {
-        super(
-                level,
-                x,
-                y,
-                z,
-                xd,
-                yd,
-                zd,
-                sprites.get(0, 1)
-        );
+        super(level, x, y, z, xd, yd, zd, sprites.get(0, 1));
 
         this.sprites = sprites;
-
-        this.lifetime = 5;
-
-        this.xd = xd;
-        this.yd = yd;
-        this.zd = zd;
-
-        this.gravity = 0.0F;
-        this.friction = 1.0F;
-
-        // Голубо-синий цвет
-        this.setColor(
-                0.25F,
-                0.75F,
-                1.0F
-        );
-
-        // Полупрозрачность
-        this.setAlpha(MAX_ALPHA);
-
-        // Размер
-        this.quadSize = START_SIZE;
+        lifetime = 5;
+        gravity = 0.0F;
+        friction = 1.0F;
+        setColor(0.25F, 0.75F, 1.0F);
+        setAlpha(MAX_ALPHA);
+        quadSize = START_SIZE;
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        if (this.removed) {
+        if (removed) {
             return;
         }
 
-        float progress =
-                (float) this.age / (float) this.lifetime;
+        float progress = (float) age / lifetime;
 
-        /*
-         * Плавное исчезновение.
-         */
-        this.setAlpha(
-                MAX_ALPHA * (1.0F - progress)
-        );
-
-        /*
-         * Немного увеличиваемся.
-         */
-        this.quadSize =
-                START_SIZE
-                        + (END_SIZE - START_SIZE)
-                        * progress;
-
-        this.setSpriteFromAge(this.sprites);
+        setAlpha(MAX_ALPHA * (1.0F - progress));
+        quadSize = START_SIZE + (END_SIZE - START_SIZE) * progress;
+        setSpriteFromAge(sprites);
     }
 
     @Override
@@ -102,8 +62,7 @@ public final class PhantomSweepParticle extends SingleQuadParticle {
         return Layer.TRANSLUCENT;
     }
 
-    public static final class Provider
-            implements ParticleProvider<SimpleParticleType> {
+    public static final class Provider implements ParticleProvider<SimpleParticleType> {
 
         private final SpriteSet sprites;
 
@@ -131,8 +90,7 @@ public final class PhantomSweepParticle extends SingleQuadParticle {
                     xAux,
                     yAux,
                     zAux,
-                    this.sprites,
-                    random
+                    sprites
             );
         }
     }

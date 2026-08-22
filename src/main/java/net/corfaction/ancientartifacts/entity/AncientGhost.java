@@ -23,35 +23,21 @@ import java.util.EnumSet;
 public class AncientGhost extends Monster {
 
     private static final double FOLLOW_DISTANCE = 64.0D;
-
     private static final double ORBIT_SPEED = 0.20D;
     private static final double WANDER_SPEED = 0.12D;
     private static final double DASH_SPEED = 0.9D;
-
     private static final float BOB_SPEED = 0.08F;
     private static final float BOB_AMPLITUDE = 0.08F;
 
     private float bobTime;
     private float bobOffset;
+    private boolean spawnEffectsPlayed;
 
-    /*
-     * Чтобы эффекты спавна сработали только один раз.
-     */
-    private boolean spawnEffectsPlayed = false;
-
-    public AncientGhost(
-            EntityType<? extends Monster> type,
-            Level level
-    ) {
+    public AncientGhost(EntityType<? extends Monster> type, Level level) {
         super(type, level);
 
-        this.moveControl = new FlyingMoveControl<>(
-                this,
-                20,
-                true
-        );
-
-        this.setNoGravity(true);
+        moveControl = new FlyingMoveControl<>(this, 20, true);
+        setNoGravity(true);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -63,168 +49,103 @@ public class AncientGhost extends Monster {
                 .add(Attributes.FLYING_SPEED, 0.3D);
     }
 
-    // =========================================================
-    // GOALS
-    // =========================================================
-
     @Override
     protected void registerGoals() {
-
-        /*
-         * Атака имеет максимальный приоритет.
-         */
-        this.goalSelector.addGoal(
-                0,
-                new GhostAttackGoal(this)
-        );
-
-        /*
-         * Блуждание только если нет игрока.
-         */
-        this.goalSelector.addGoal(
-                1,
-                new GhostWanderGoal(this)
-        );
+        goalSelector.addGoal(0, new GhostAttackGoal(this));
+        goalSelector.addGoal(1, new GhostWanderGoal(this));
     }
-
-    // =========================================================
-    // NAVIGATION
-    // =========================================================
 
     @Override
     protected PathNavigation createNavigation(Level level) {
-
-        FlyingPathNavigation navigation =
-                new FlyingPathNavigation(this, level);
-
+        FlyingPathNavigation navigation = new FlyingPathNavigation(this, level);
         navigation.setCanOpenDoors(false);
         navigation.setCanFloat(true);
         navigation.setRequiredPathLength(48.0F);
-
         return navigation;
     }
 
-    // =========================================================
-    // FLYING
-    // =========================================================
-
     @Override
     public void travel(Vec3 input) {
-        this.travelFlying(input, this.getSpeed());
+        travelFlying(input, getSpeed());
     }
 
     @Override
     public void tick() {
-
-        /*
-         * Призрак проходит сквозь блоки.
-         */
-        this.noPhysics = true;
-
+        noPhysics = true;
         super.tick();
 
-        /*
-         * Эффект появления.
-         *
-         * Делаем это через tick(), потому что в твоей
-         * версии нет onAddedToLevel().
-         */
-        if (!this.level().isClientSide()
-                && !this.spawnEffectsPlayed) {
+        if (!level().isClientSide() && !spawnEffectsPlayed) {
+            spawnEffectsPlayed = true;
 
-            this.spawnEffectsPlayed = true;
-
-            if (this.level() instanceof ServerLevel serverLevel) {
-                this.playSpawnEffects(serverLevel);
+            if (level() instanceof ServerLevel serverLevel) {
+                playSpawnEffects(serverLevel);
             }
         }
 
-        /*
-         * Плавное покачивание модели.
-         */
-        if (this.level().isClientSide()) {
-
-            this.bobTime += BOB_SPEED;
-
-            this.bobOffset =
-                    Mth.sin(this.bobTime)
-                            * BOB_AMPLITUDE;
+        if (level().isClientSide()) {
+            bobTime += BOB_SPEED;
+            bobOffset = Mth.sin(bobTime) * BOB_AMPLITUDE;
         }
     }
 
-    // =========================================================
-    // SPAWN EFFECTS
-    // =========================================================
-
     private void playSpawnEffects(ServerLevel level) {
-
-        // Громкий звук появления
-        this.level().playSound(
+        level.playSound(
                 null,
-                this.getX(),
-                this.getY(),
-                this.getZ(),
+                getX(),
+                getY(),
+                getZ(),
                 SoundEvents.SOUL_ESCAPE,
                 SoundSource.HOSTILE,
                 4.5F,
-                0.7F + this.random.nextFloat() * 0.2F
+                0.7F + random.nextFloat() * 0.2F
         );
 
-        // Белая призрачная дымка
         level.sendParticles(
                 ParticleTypes.CLOUD,
-                this.getX(),
-                this.getY() + this.getBbHeight() * 0.5D,
-                this.getZ(),
+                getX(),
+                getY() + getBbHeight() * 0.5D,
+                getZ(),
                 20,
-                this.getBbWidth() * 0.6D,
-                this.getBbHeight() * 0.6D,
-                this.getBbWidth() * 0.6D,
+                getBbWidth() * 0.6D,
+                getBbHeight() * 0.6D,
+                getBbWidth() * 0.6D,
                 0.04D
         );
 
-        // Дополнительные белые частицы
         level.sendParticles(
                 ParticleTypes.WHITE_ASH,
-                this.getX(),
-                this.getY() + this.getBbHeight() * 0.5D,
-                this.getZ(),
+                getX(),
+                getY() + getBbHeight() * 0.5D,
+                getZ(),
                 25,
-                this.getBbWidth() * 0.5D,
-                this.getBbHeight() * 0.6D,
-                this.getBbWidth() * 0.5D,
+                getBbWidth() * 0.5D,
+                getBbHeight() * 0.6D,
+                getBbWidth() * 0.5D,
                 0.02D
         );
     }
 
-    // =========================================================
-    // DASH EFFECTS
-    // =========================================================
-
     public void playDashEffects() {
-
-        if (!(this.level() instanceof ServerLevel serverLevel)) {
+        if (!(level() instanceof ServerLevel serverLevel)) {
             return;
         }
 
-        // Громкий звук рывка
-        this.level().playSound(
+        serverLevel.playSound(
                 null,
-                this.getX(),
-                this.getY(),
-                this.getZ(),
+                getX(),
+                getY(),
+                getZ(),
                 SoundEvents.SOUL_ESCAPE,
                 SoundSource.HOSTILE,
                 4.0F,
-                1.1F + this.random.nextFloat() * 0.2F
+                1.1F + random.nextFloat() * 0.2F
         );
 
-        // Белая дымка при рывке
         serverLevel.sendParticles(
                 ParticleTypes.CLOUD,
-                this.getX(),
-                this.getY() + this.getBbHeight() * 0.5D,
-                this.getZ(),
+                getX(),
+                getY() + getBbHeight() * 0.5D,
+                getZ(),
                 10,
                 0.3D,
                 0.4D,
@@ -234,9 +155,9 @@ public class AncientGhost extends Monster {
 
         serverLevel.sendParticles(
                 ParticleTypes.WHITE_ASH,
-                this.getX(),
-                this.getY() + this.getBbHeight() * 0.5D,
-                this.getZ(),
+                getX(),
+                getY() + getBbHeight() * 0.5D,
+                getZ(),
                 12,
                 0.25D,
                 0.35D,
@@ -245,105 +166,46 @@ public class AncientGhost extends Monster {
         );
     }
 
-    // =========================================================
-    // TARGET
-    // =========================================================
-
     @Override
     public void aiStep() {
-
         super.aiStep();
 
-        /*
-         * Игрок всегда имеет приоритет.
-         *
-         * Не используем обычный pathfinding для поиска игрока,
-         * поэтому стены не мешают обнаружению.
-         */
-        if (this.level() instanceof ServerLevel serverLevel) {
+        if (level() instanceof ServerLevel serverLevel) {
+            Player player = serverLevel.getNearestPlayer(this, FOLLOW_DISTANCE);
 
-            Player player =
-                    serverLevel.getNearestPlayer(
-                            this,
-                            FOLLOW_DISTANCE
-                    );
-
-            if (player != null
-                    && player.isAlive()
-                    && !player.isSpectator()) {
-
-                this.setTarget(player);
-
+            if (player != null && player.isAlive() && !player.isSpectator()) {
+                setTarget(player);
             } else {
-
-                this.setTarget(null);
+                setTarget(null);
             }
         }
     }
 
-    // =========================================================
-    // LOOK
-    // =========================================================
-
     private void lookTowards(Vec3 position) {
-
-        double dx =
-                position.x - this.getX();
-
-        double dy =
-                position.y - this.getEyeY();
-
-        double dz =
-                position.z - this.getZ();
-
-        double horizontal =
-                Math.sqrt(
-                        dx * dx +
-                                dz * dz
-                );
+        double dx = position.x - getX();
+        double dy = position.y - getEyeY();
+        double dz = position.z - getZ();
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
 
         if (horizontal < 0.0001D) {
             return;
         }
 
-        float yaw =
-                (float) (
-                        Math.atan2(dz, dx)
-                                * 180.0D
-                                / Math.PI
-                ) - 90.0F;
+        float yaw = (float) (Math.atan2(dz, dx) * 180.0D / Math.PI) - 90.0F;
+        float pitch = (float) (-Math.atan2(dy, horizontal) * 180.0D / Math.PI);
 
-        float pitch =
-                (float) (
-                        -Math.atan2(
-                                dy,
-                                horizontal
-                        )
-                                * 180.0D
-                                / Math.PI
-                );
+        setYRot(yaw);
+        setXRot(pitch);
+        setYHeadRot(yaw);
 
-        this.setYRot(yaw);
-        this.setXRot(pitch);
-
-        this.setYHeadRot(yaw);
-
-        this.yRotO = yaw;
-        this.xRotO = pitch;
-        this.yHeadRotO = yaw;
+        yRotO = yaw;
+        xRotO = pitch;
+        yHeadRotO = yaw;
     }
-
-    // =========================================================
-    // BOB
-    // =========================================================
 
     public float getBobOffset() {
-        return this.bobOffset;
+        return bobOffset;
     }
-
-    // =========================================================
-    // ATTACK GOAL
-    // =========================================================
 
     private static class GhostAttackGoal extends Goal {
 
@@ -352,134 +214,79 @@ public class AncientGhost extends Monster {
             DASH
         }
 
+        private static final int MIN_DASH_COOLDOWN = 50;
+        private static final int MAX_DASH_COOLDOWN = 100;
+        private static final int DASH_DURATION = 12;
+
         private final AncientGhost ghost;
 
         private Phase phase = Phase.ORBIT;
-
         private double targetX;
         private double targetY;
         private double targetZ;
-
         private double dashStartX;
         private double dashStartY;
         private double dashStartZ;
-
         private double dashTargetX;
         private double dashTargetY;
         private double dashTargetZ;
-
         private double orbitAngle;
-
         private int changePositionCooldown;
         private int dashCooldown;
         private int dashTicks;
         private int attackCooldown;
 
-        private static final int MIN_DASH_COOLDOWN = 50;
-        private static final int MAX_DASH_COOLDOWN = 100;
-
-        private static final int DASH_DURATION = 12;
-
         public GhostAttackGoal(AncientGhost ghost) {
-
             this.ghost = ghost;
-
-            this.setFlags(
-                    EnumSet.of(
-                            Goal.Flag.MOVE,
-                            Goal.Flag.LOOK
-                    )
-            );
+            setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
         }
 
         @Override
         public boolean canUse() {
-
-            return ghost.getTarget()
-                    instanceof Player player
+            return ghost.getTarget() instanceof Player player
                     && player.isAlive()
                     && !player.isSpectator();
         }
 
         @Override
         public boolean canContinueToUse() {
-
-            if (!(ghost.getTarget()
-                    instanceof Player player)) {
-
+            if (!(ghost.getTarget() instanceof Player player)) {
                 return false;
             }
 
             return player.isAlive()
                     && !player.isSpectator()
-                    && ghost.distanceToSqr(player)
-                    < FOLLOW_DISTANCE * FOLLOW_DISTANCE;
+                    && ghost.distanceToSqr(player) < FOLLOW_DISTANCE * FOLLOW_DISTANCE;
         }
 
         @Override
         public void start() {
-
             phase = Phase.ORBIT;
-
             attackCooldown = 0;
-
-            dashCooldown =
-                    MIN_DASH_COOLDOWN
-                            + ghost.getRandom()
-                            .nextInt(
-                                    MAX_DASH_COOLDOWN
-                                            - MIN_DASH_COOLDOWN
-                            );
-
-            orbitAngle =
-                    ghost.getRandom()
-                            .nextDouble()
-                            * Math.PI
-                            * 2.0D;
-
+            dashCooldown = MIN_DASH_COOLDOWN
+                    + ghost.getRandom().nextInt(MAX_DASH_COOLDOWN - MIN_DASH_COOLDOWN);
+            orbitAngle = ghost.getRandom().nextDouble() * Math.PI * 2.0D;
             chooseOrbitPosition();
-
             ghost.setDeltaMovement(Vec3.ZERO);
         }
 
         @Override
         public void tick() {
-
-            if (!(ghost.getTarget()
-                    instanceof Player player)) {
-
+            if (!(ghost.getTarget() instanceof Player player)) {
                 return;
             }
 
-            /*
-             * Во время агра ВСЕГДА смотрим на игрока.
-             */
-            ghost.lookTowards(
-                    new Vec3(
-                            player.getX(),
-                            player.getEyeY(),
-                            player.getZ()
-                    )
-            );
-
+            ghost.lookTowards(new Vec3(player.getX(), player.getEyeY(), player.getZ()));
             attackCooldown--;
 
             if (phase == Phase.ORBIT) {
-
                 tickOrbit(player);
-
             } else {
-
                 tickDash(player);
             }
         }
 
-        // =====================================================
-        // ORBIT
-        // =====================================================
-
         private void tickOrbit(Player player) {
-
             changePositionCooldown--;
             dashCooldown--;
 
@@ -495,314 +302,134 @@ public class AncientGhost extends Monster {
         }
 
         private void chooseOrbitPosition() {
-
-            if (!(ghost.getTarget()
-                    instanceof Player player)) {
-
+            if (!(ghost.getTarget() instanceof Player player)) {
                 return;
             }
 
-            double direction =
-                    ghost.getRandom().nextBoolean()
-                            ? 1.0D
-                            : -1.0D;
+            double direction = ghost.getRandom().nextBoolean() ? 1.0D : -1.0D;
+            orbitAngle += direction * (0.7D + ghost.getRandom().nextDouble() * 1.2D);
 
-            orbitAngle +=
-                    direction
-                            * (
-                            0.7D
-                                    + ghost.getRandom()
-                                    .nextDouble()
-                                    * 1.2D
-                    );
+            double radius = 3.0D + ghost.getRandom().nextDouble() * 4.0D;
 
-            double radius =
-                    3.0D
-                            + ghost.getRandom()
-                            .nextDouble()
-                            * 4.0D;
+            targetX = player.getX() + Math.cos(orbitAngle) * radius;
+            targetZ = player.getZ() + Math.sin(orbitAngle) * radius;
+            targetY = player.getY() + 1.0D + ghost.getRandom().nextDouble() * 3.0D;
 
-            targetX =
-                    player.getX()
-                            + Math.cos(orbitAngle)
-                            * radius;
-
-            targetZ =
-                    player.getZ()
-                            + Math.sin(orbitAngle)
-                            * radius;
-
-            targetY =
-                    player.getY()
-                            + 1.0D
-                            + ghost.getRandom()
-                            .nextDouble()
-                            * 3.0D;
-
-            changePositionCooldown =
-                    15
-                            + ghost.getRandom()
-                            .nextInt(25);
+            changePositionCooldown = 15 + ghost.getRandom().nextInt(25);
         }
 
         private void moveTowardsOrbitPosition() {
-
-            double dx =
-                    targetX - ghost.getX();
-
-            double dy =
-                    targetY - ghost.getY();
-
-            double dz =
-                    targetZ - ghost.getZ();
-
-            double distance =
-                    Math.sqrt(
-                            dx * dx +
-                                    dy * dy +
-                                    dz * dz
-                    );
+            double dx = targetX - ghost.getX();
+            double dy = targetY - ghost.getY();
+            double dz = targetZ - ghost.getZ();
+            double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
             if (distance < 0.5D) {
-
-                ghost.setDeltaMovement(
-                        ghost.getDeltaMovement()
-                                .scale(0.9D)
-                );
-
+                ghost.setDeltaMovement(ghost.getDeltaMovement().scale(0.9D));
                 return;
             }
 
-            Vec3 direction =
-                    new Vec3(
-                            dx / distance,
-                            dy / distance,
-                            dz / distance
-                    );
+            Vec3 direction = new Vec3(dx / distance, dy / distance, dz / distance);
+            Vec3 desiredVelocity = direction.scale(ORBIT_SPEED);
 
-            Vec3 desiredVelocity =
-                    direction.scale(ORBIT_SPEED);
-
-            ghost.setDeltaMovement(
-                    ghost.getDeltaMovement()
-                            .lerp(
-                                    desiredVelocity,
-                                    0.25D
-                            )
-            );
+            ghost.setDeltaMovement(ghost.getDeltaMovement().lerp(desiredVelocity, 0.25D));
         }
 
-        // =====================================================
-        // DASH
-        // =====================================================
-
         private void startDash(Player player) {
-
             phase = Phase.DASH;
-
             dashTicks = 0;
 
             dashStartX = ghost.getX();
             dashStartY = ghost.getY();
             dashStartZ = ghost.getZ();
 
-            Vec3 direction =
-                    new Vec3(
-                            player.getX() - ghost.getX(),
-                            player.getEyeY() - ghost.getY(),
-                            player.getZ() - ghost.getZ()
-                    );
-
-            if (direction.lengthSqr() < 0.001D) {
-
-                direction =
-                        new Vec3(
-                                0.0D,
-                                0.0D,
-                                1.0D
-                        );
-
-            } else {
-
-                direction =
-                        direction.normalize();
-            }
-
-            double distance =
-                    6.0D
-                            + ghost.getRandom()
-                            .nextDouble()
-                            * 2.0D;
-
-            dashTargetX =
-                    player.getX()
-                            + direction.x * distance;
-
-            dashTargetY =
-                    player.getEyeY()
-                            + direction.y * distance;
-
-            dashTargetZ =
-                    player.getZ()
-                            + direction.z * distance;
-
-            ghost.setDeltaMovement(
-                    direction.scale(DASH_SPEED)
+            Vec3 direction = new Vec3(
+                    player.getX() - ghost.getX(),
+                    player.getEyeY() - ghost.getY(),
+                    player.getZ() - ghost.getZ()
             );
 
+            if (direction.lengthSqr() < 0.001D) {
+                direction = new Vec3(0.0D, 0.0D, 1.0D);
+            } else {
+                direction = direction.normalize();
+            }
+
+            double distance = 6.0D + ghost.getRandom().nextDouble() * 2.0D;
+
+            dashTargetX = player.getX() + direction.x * distance;
+            dashTargetY = player.getEyeY() + direction.y * distance;
+            dashTargetZ = player.getZ() + direction.z * distance;
+
+            ghost.setDeltaMovement(direction.scale(DASH_SPEED));
             ghost.playDashEffects();
         }
 
         private void tickDash(Player player) {
-
             dashTicks++;
 
-            double dx =
-                    dashTargetX - ghost.getX();
-
-            double dy =
-                    dashTargetY - ghost.getY();
-
-            double dz =
-                    dashTargetZ - ghost.getZ();
-
-            double distance =
-                    Math.sqrt(
-                            dx * dx +
-                                    dy * dy +
-                                    dz * dz
-                    );
+            double dx = dashTargetX - ghost.getX();
+            double dy = dashTargetY - ghost.getY();
+            double dz = dashTargetZ - ghost.getZ();
+            double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
             if (distance > 0.1D) {
-
-                Vec3 direction =
-                        new Vec3(
-                                dx / distance,
-                                dy / distance,
-                                dz / distance
-                        );
-
-                ghost.setDeltaMovement(
-                        direction.scale(DASH_SPEED)
-                );
+                Vec3 direction = new Vec3(dx / distance, dy / distance, dz / distance);
+                ghost.setDeltaMovement(direction.scale(DASH_SPEED));
             }
 
-            if (attackCooldown <= 0
-                    && crossedPlayer(player)) {
-
-                if (ghost.level()
-                        instanceof ServerLevel serverLevel) {
-
-                    ghost.doHurtTarget(
-                            serverLevel,
-                            player
-                    );
+            if (attackCooldown <= 0 && crossedPlayer(player)) {
+                if (ghost.level() instanceof ServerLevel serverLevel) {
+                    ghost.doHurtTarget(serverLevel, player);
                 }
 
                 attackCooldown = 20;
             }
 
-            if (dashTicks >= DASH_DURATION
-                    || distance < 1.0D) {
-
+            if (dashTicks >= DASH_DURATION || distance < 1.0D) {
                 finishDash();
             }
         }
 
         private boolean crossedPlayer(Player player) {
+            Vec3 start = new Vec3(dashStartX, dashStartY, dashStartZ);
+            Vec3 end = new Vec3(ghost.getX(), ghost.getY(), ghost.getZ());
 
-            Vec3 start =
-                    new Vec3(
-                            dashStartX,
-                            dashStartY,
-                            dashStartZ
-                    );
+            Vec3 playerPosition = new Vec3(
+                    player.getX(),
+                    player.getY() + player.getBbHeight() * 0.5D,
+                    player.getZ()
+            );
 
-            Vec3 end =
-                    new Vec3(
-                            ghost.getX(),
-                            ghost.getY(),
-                            ghost.getZ()
-                    );
-
-            Vec3 playerPosition =
-                    new Vec3(
-                            player.getX(),
-                            player.getY()
-                                    + player.getBbHeight()
-                                    * 0.5D,
-                            player.getZ()
-                    );
-
-            Vec3 line =
-                    end.subtract(start);
-
-            double lengthSqr =
-                    line.lengthSqr();
+            Vec3 line = end.subtract(start);
+            double lengthSqr = line.lengthSqr();
 
             if (lengthSqr < 0.001D) {
                 return false;
             }
 
-            double t =
-                    playerPosition
-                            .subtract(start)
-                            .dot(line)
-                            / lengthSqr;
+            double t = playerPosition.subtract(start).dot(line) / lengthSqr;
+            t = Math.max(0.0D, Math.min(1.0D, t));
 
-            t =
-                    Math.max(
-                            0.0D,
-                            Math.min(
-                                    1.0D,
-                                    t
-                            )
-                    );
-
-            Vec3 closestPoint =
-                    start.add(
-                            line.scale(t)
-                    );
-
-            return closestPoint
-                    .distanceToSqr(playerPosition)
-                    < 1.5D * 1.5D;
+            Vec3 closestPoint = start.add(line.scale(t));
+            return closestPoint.distanceToSqr(playerPosition) < 1.5D * 1.5D;
         }
 
         private void finishDash() {
-
             phase = Phase.ORBIT;
-
-            dashCooldown =
-                    MIN_DASH_COOLDOWN
-                            + ghost.getRandom()
-                            .nextInt(
-                                    MAX_DASH_COOLDOWN
-                                            - MIN_DASH_COOLDOWN
-                            );
+            dashCooldown = MIN_DASH_COOLDOWN
+                    + ghost.getRandom().nextInt(MAX_DASH_COOLDOWN - MIN_DASH_COOLDOWN);
 
             chooseOrbitPosition();
-
-            ghost.setDeltaMovement(
-                    ghost.getDeltaMovement()
-                            .scale(0.35D)
-            );
+            ghost.setDeltaMovement(ghost.getDeltaMovement().scale(0.35D));
         }
 
         @Override
         public void stop() {
-
             phase = Phase.ORBIT;
-
-            ghost.setDeltaMovement(
-                    Vec3.ZERO
-            );
+            ghost.setDeltaMovement(Vec3.ZERO);
         }
     }
-
-    // =========================================================
-    // WANDER GOAL
-    // =========================================================
 
     private static class GhostWanderGoal extends Goal {
 
@@ -811,38 +438,21 @@ public class AncientGhost extends Monster {
         private double targetX;
         private double targetY;
         private double targetZ;
-
         private int cooldown;
 
         public GhostWanderGoal(AncientGhost ghost) {
-
             this.ghost = ghost;
-
-            this.setFlags(
-                    EnumSet.of(
-                            Goal.Flag.MOVE,
-                            Goal.Flag.LOOK
-                    )
-            );
+            setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
         }
 
         @Override
         public boolean canUse() {
-
-            /*
-             * Игрок всегда приоритетнее.
-             */
-            if (ghost.getTarget()
-                    instanceof Player player
-                    && player.isAlive()) {
-
+            if (ghost.getTarget() instanceof Player player && player.isAlive()) {
                 return false;
             }
 
             if (cooldown > 0) {
-
                 cooldown--;
-
                 return false;
             }
 
@@ -851,26 +461,11 @@ public class AncientGhost extends Monster {
 
         @Override
         public boolean canContinueToUse() {
-
-            /*
-             * Игрок появился —
-             * сразу прекращаем wander.
-             */
-            if (ghost.getTarget()
-                    instanceof Player player
-                    && player.isAlive()) {
-
+            if (ghost.getTarget() instanceof Player player && player.isAlive()) {
                 return false;
             }
 
-            double distance =
-                    ghost.distanceToSqr(
-                            targetX,
-                            targetY,
-                            targetZ
-                    );
-
-            return distance > 1.5D * 1.5D;
+            return ghost.distanceToSqr(targetX, targetY, targetZ) > 1.5D * 1.5D;
         }
 
         @Override
@@ -885,129 +480,47 @@ public class AncientGhost extends Monster {
 
         @Override
         public void stop() {
-
-            cooldown =
-                    60
-                            + ghost.getRandom()
-                            .nextInt(100);
-
-            ghost.setDeltaMovement(
-                    ghost.getDeltaMovement()
-                            .scale(0.8D)
-            );
+            cooldown = 60 + ghost.getRandom().nextInt(100);
+            ghost.setDeltaMovement(ghost.getDeltaMovement().scale(0.8D));
         }
 
         private boolean findNewPosition() {
+            Level level = ghost.level();
 
-            Level level =
-                    ghost.level();
+            int x = ghost.blockPosition().getX() + ghost.getRandom().nextInt(41) - 20;
+            int z = ghost.blockPosition().getZ() + ghost.getRandom().nextInt(41) - 20;
 
-            int offsetX =
-                    ghost.getRandom()
-                            .nextInt(41) - 20;
+            int surfaceY = level.getHeight(
+                    Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                    x,
+                    z
+            );
 
-            int offsetZ =
-                    ghost.getRandom()
-                            .nextInt(41) - 20;
+            int height = 2 + ghost.getRandom().nextInt(4);
 
-            int x =
-                    ghost.blockPosition().getX()
-                            + offsetX;
-
-            int z =
-                    ghost.blockPosition().getZ()
-                            + offsetZ;
-
-            /*
-             * Ищем поверхность.
-             */
-            int surfaceY =
-                    level.getHeight(
-                            Heightmap.Types
-                                    .MOTION_BLOCKING_NO_LEAVES,
-                            x,
-                            z
-                    );
-
-            /*
-             * Летаем над поверхностью.
-             */
-            int height =
-                    2
-                            + ghost.getRandom()
-                            .nextInt(4);
-
-            targetX =
-                    x + 0.5D;
-
-            targetY =
-                    surfaceY + height;
-
-            targetZ =
-                    z + 0.5D;
+            targetX = x + 0.5D;
+            targetY = surfaceY + height;
+            targetZ = z + 0.5D;
 
             return true;
         }
 
         private void moveTowardsTarget() {
-
-            double dx =
-                    targetX - ghost.getX();
-
-            double dy =
-                    targetY - ghost.getY();
-
-            double dz =
-                    targetZ - ghost.getZ();
-
-            double distance =
-                    Math.sqrt(
-                            dx * dx +
-                                    dy * dy +
-                                    dz * dz
-                    );
+            double dx = targetX - ghost.getX();
+            double dy = targetY - ghost.getY();
+            double dz = targetZ - ghost.getZ();
+            double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
             if (distance < 0.5D) {
-
-                ghost.setDeltaMovement(
-                        ghost.getDeltaMovement()
-                                .scale(0.9D)
-                );
-
+                ghost.setDeltaMovement(ghost.getDeltaMovement().scale(0.9D));
                 return;
             }
 
-            Vec3 direction =
-                    new Vec3(
-                            dx / distance,
-                            dy / distance,
-                            dz / distance
-                    );
+            Vec3 direction = new Vec3(dx / distance, dy / distance, dz / distance);
+            Vec3 desiredVelocity = direction.scale(WANDER_SPEED);
 
-            Vec3 desiredVelocity =
-                    direction.scale(
-                            WANDER_SPEED
-                    );
-
-            ghost.setDeltaMovement(
-                    ghost.getDeltaMovement()
-                            .lerp(
-                                    desiredVelocity,
-                                    0.30D
-                            )
-            );
-
-            /*
-             * При блуждании голова смотрит
-             * туда, куда он летит.
-             */
-            ghost.lookTowards(
-                    new Vec3(
-                            targetX,
-                            targetY,
-                            targetZ
-                    )
-            );
+            ghost.setDeltaMovement(ghost.getDeltaMovement().lerp(desiredVelocity, 0.30D));
+            ghost.lookTowards(new Vec3(targetX, targetY, targetZ));
         }
     }
 }

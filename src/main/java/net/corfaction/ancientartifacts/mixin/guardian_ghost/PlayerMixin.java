@@ -18,9 +18,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Player.class)
 public final class PlayerMixin {
 
-    /**
-     * Обработка артефакта в специальном слоте.
-     */
     @Inject(method = "tick", at = @At("TAIL"))
     private void ancientArtifacts$tickArtifact(CallbackInfo ci) {
         Player player = (Player) (Object) this;
@@ -32,15 +29,10 @@ public final class PlayerMixin {
         ItemStack artifact = ((PlayerInventoryAccess) player.getInventory())
                 .ancientArtifacts$getExtraSlot();
 
-        if (artifact.isEmpty()) {
-            return;
-        }
-
         if (!(artifact.getItem() instanceof GuardianTalisman)) {
             return;
         }
 
-        // 1200 тиков = 60 секунд
         if (player.tickCount % 1200 != 0) {
             return;
         }
@@ -55,9 +47,6 @@ public final class PlayerMixin {
         artifact.setDamageValue(damage);
     }
 
-    /**
-     * Guardian Talisman с шансом 20% полностью блокирует получаемый урон.
-     */
     @Inject(
             method = "hurtServer",
             at = @At("HEAD"),
@@ -70,31 +59,20 @@ public final class PlayerMixin {
             CallbackInfoReturnable<Boolean> cir
     ) {
         Player player = (Player) (Object) this;
-
         ItemStack artifact = ((PlayerInventoryAccess) player.getInventory())
                 .ancientArtifacts$getExtraSlot();
 
-        /*
-         * Талисман должен находиться именно в специальном слоте.
-         */
-        if (artifact.isEmpty()
-                || !(artifact.getItem() instanceof GuardianTalisman)
+        if (!(artifact.getItem() instanceof GuardianTalisman)
                 || player.isInvulnerableTo(level, source)) {
             return;
         }
 
-        /*
-         * 20% шанс заблокировать урон.
-         */
         if (player.getRandom().nextFloat() >= 0.2F) {
             return;
         }
 
         cir.setReturnValue(false);
 
-        /*
-         * Звуки блокирования.
-         */
         level.playSound(
                 null,
                 player.blockPosition(),
@@ -122,9 +100,6 @@ public final class PlayerMixin {
                 0.6F
         );
 
-        /*
-         * Частицы вокруг игрока.
-         */
         double x = player.getX();
         double y = player.getY() + player.getEyeHeight() * 0.5D;
         double z = player.getZ();

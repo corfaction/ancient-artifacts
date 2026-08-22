@@ -22,11 +22,7 @@ public final class MysteriousLamp extends Item {
     }
 
     @Override
-    public InteractionResult use(
-            Level level,
-            Player player,
-            InteractionHand hand
-    ) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
         if (level.isClientSide()) {
@@ -40,13 +36,11 @@ public final class MysteriousLamp extends Item {
         }
 
         Djinn djinn = new Djinn(ModEntityTypes.DJINN, level);
-
         djinn.setPos(
                 spawnPos.getX() + 0.5D,
                 spawnPos.getY(),
                 spawnPos.getZ() + 0.5D
         );
-
         djinn.setYRot(player.getYRot());
         djinn.setXRot(0.0F);
 
@@ -87,11 +81,11 @@ public final class MysteriousLamp extends Item {
         Vec3 playerPos = player.position();
 
         for (int distance = 2; distance <= 3; distance++) {
-            double x = playerPos.x + lookVec.x * distance;
-            double y = playerPos.y + player.getEyeHeight() + lookVec.y * distance;
-            double z = playerPos.z + lookVec.z * distance;
-
-            BlockPos checkPos = BlockPos.containing(x, y, z);
+            BlockPos checkPos = BlockPos.containing(
+                    playerPos.x + lookVec.x * distance,
+                    playerPos.y + player.getEyeHeight() + lookVec.y * distance,
+                    playerPos.z + lookVec.z * distance
+            );
 
             if (level.getBlockState(checkPos).isAir()
                     && level.getBlockState(checkPos.above()).isAir()) {

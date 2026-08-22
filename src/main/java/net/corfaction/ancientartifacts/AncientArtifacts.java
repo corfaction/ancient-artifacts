@@ -8,6 +8,7 @@ import net.corfaction.ancientartifacts.block.menu.ArchaeologicalTableMenu;
 import net.corfaction.ancientartifacts.block.menu.ModMenuTypes;
 import net.corfaction.ancientartifacts.entity.ModEntity;
 import net.corfaction.ancientartifacts.item.ModItems;
+import net.corfaction.ancientartifacts.network.ArchaeologistEyePayload;
 import net.corfaction.ancientartifacts.network.CleanArchaeologicalPixelPayload;
 import net.corfaction.ancientartifacts.network.PhantomSweepManager;
 import net.corfaction.ancientartifacts.network.PhantomSweepPayload;
@@ -72,6 +73,13 @@ public final class AncientArtifacts implements ModInitializer {
 				PhantomSweepPayload.TYPE,
 				PhantomSweepPayload.CODEC
 		);
+
+		PayloadTypeRegistry
+				.clientboundPlay()
+				.register(
+						ArchaeologistEyePayload.TYPE,
+						ArchaeologistEyePayload.CODEC
+				);
 
 		ServerTickEvents.END_SERVER_TICK.register(
 				server -> PhantomSweepManager.tick()

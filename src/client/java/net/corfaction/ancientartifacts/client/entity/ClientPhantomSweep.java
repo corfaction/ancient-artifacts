@@ -13,40 +13,25 @@ public final class ClientPhantomSweep {
     }
 
     public static void register() {
-
         ParticleProviderRegistry.getInstance().register(
                 PhantomSweepParticleType.PHANTOM_SWEEP,
-                net.corfaction.ancientartifacts.client.particle
-                        .PhantomSweepParticle.Provider::new
+                net.corfaction.ancientartifacts.client.particle.PhantomSweepParticle.Provider::new
         );
 
         ClientPlayNetworking.registerGlobalReceiver(
                 PhantomSweepPayload.TYPE,
-                (payload, context) -> {
+                (payload, context) -> context.client().execute(() -> {
+                    ClientLevel level = context.client().level;
 
-                    context.client().execute(() -> {
-
-                        Minecraft minecraft = context.client();
-                        ClientLevel level = minecraft.level;
-
-                        if (level == null) {
-                            return;
-                        }
-
+                    if (level != null) {
                         spawnSweep(level, payload);
-                    });
-                }
+                    }
+                })
         );
     }
 
-    private static void spawnSweep(
-            ClientLevel level,
-            PhantomSweepPayload payload
-    ) {
-        float radians =
-                payload.yRot()
-                        * ((float) Math.PI / 180.0F);
-
+    private static void spawnSweep(ClientLevel level, PhantomSweepPayload payload) {
+        float radians = payload.yRot() * ((float) Math.PI / 180.0F);
         double dx = -Math.sin(radians);
         double dz = Math.cos(radians);
 

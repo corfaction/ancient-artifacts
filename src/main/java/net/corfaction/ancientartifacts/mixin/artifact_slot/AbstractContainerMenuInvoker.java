@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(AbstractContainerMenu.class)
 public interface AbstractContainerMenuInvoker {
+
     @Invoker("addSlot")
-    Slot ancientArtifacts$addArtifactSlot(final Slot slot);
+    Slot ancientArtifacts$addArtifactSlot(Slot slot);
 }

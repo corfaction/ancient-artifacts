@@ -24,12 +24,12 @@ public class InventoryMixin implements PlayerInventoryAccess {
 
     @Override
     public ItemStack ancientArtifacts$getExtraSlot() {
-        return this.ancientArtifacts$extraSlot;
+        return ancientArtifacts$extraSlot;
     }
 
     @Override
     public void ancientArtifacts$setExtraSlot(ItemStack stack) {
-        this.ancientArtifacts$extraSlot = stack;
+        ancientArtifacts$extraSlot = stack;
         ((Inventory) (Object) this).setChanged();
     }
 
@@ -38,10 +38,10 @@ public class InventoryMixin implements PlayerInventoryAccess {
             ValueOutput.TypedOutputList<ItemStackWithSlot> output,
             CallbackInfo ci
     ) {
-        if (!this.ancientArtifacts$extraSlot.isEmpty()) {
+        if (!ancientArtifacts$extraSlot.isEmpty()) {
             output.add(new ItemStackWithSlot(
                     ANCIENT_ARTIFACTS_EXTRA_SLOT,
-                    this.ancientArtifacts$extraSlot
+                    ancientArtifacts$extraSlot
             ));
         }
     }
@@ -76,7 +76,7 @@ public class InventoryMixin implements PlayerInventoryAccess {
             Operation<Void> original
     ) {
         if (slot == ANCIENT_ARTIFACTS_EXTRA_SLOT) {
-            this.ancientArtifacts$extraSlot = stack;
+            ancientArtifacts$extraSlot = stack;
         } else {
             original.call(inventory, slot, stack);
         }
@@ -86,19 +86,14 @@ public class InventoryMixin implements PlayerInventoryAccess {
     private void ancientArtifacts$dropExtraSlot(CallbackInfo ci) {
         Inventory inventory = (Inventory) (Object) this;
 
-        if (!this.ancientArtifacts$extraSlot.isEmpty()) {
-            inventory.player.drop(
-                    this.ancientArtifacts$extraSlot,
-                    true,
-                    false
-            );
-
-            this.ancientArtifacts$extraSlot = ItemStack.EMPTY;
+        if (!ancientArtifacts$extraSlot.isEmpty()) {
+            inventory.player.drop(ancientArtifacts$extraSlot, true, false);
+            ancientArtifacts$extraSlot = ItemStack.EMPTY;
         }
     }
 
     @Inject(method = "clearContent", at = @At("TAIL"))
     private void ancientArtifacts$clearExtraSlot(CallbackInfo ci) {
-        this.ancientArtifacts$extraSlot = ItemStack.EMPTY;
+        ancientArtifacts$extraSlot = ItemStack.EMPTY;
     }
 }

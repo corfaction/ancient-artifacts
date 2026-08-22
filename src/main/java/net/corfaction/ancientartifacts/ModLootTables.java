@@ -18,19 +18,14 @@ public final class ModLootTables {
 
     private static final ResourceKey<LootTable> DESERT_PYRAMID_ARCHAEOLOGY =
             archaeologyTable("desert_pyramid");
-
     private static final ResourceKey<LootTable> DESERT_WELL_ARCHAEOLOGY =
             archaeologyTable("desert_well");
-
     private static final ResourceKey<LootTable> OCEAN_RUIN_COLD_ARCHAEOLOGY =
             archaeologyTable("ocean_ruin_cold");
-
     private static final ResourceKey<LootTable> OCEAN_RUIN_WARM_ARCHAEOLOGY =
             archaeologyTable("ocean_ruin_warm");
-
     private static final ResourceKey<LootTable> TRAIL_RUINS_COMMON_ARCHAEOLOGY =
             archaeologyTable("trail_ruins_common");
-
     private static final ResourceKey<LootTable> TRAIL_RUINS_RARE_ARCHAEOLOGY =
             archaeologyTable("trail_ruins_rare");
 
@@ -92,7 +87,7 @@ public final class ModLootTables {
 
         tableBuilder.modifyPools(pool ->
                 pool.add(
-                        LootItem.lootTableItem(ModItems.ANCIENT_FRAGMENT)
+                        LootItem.lootTableItem(ModItems.DIRTY_FRAGMENT)
                                 .setWeight(15)
                 )
         );
