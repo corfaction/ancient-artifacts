@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "#": "ancient-artifacts:metal_fragment",
+    "D": "ancient-artifacts:ancient_fragment"
+  },
+  "pattern": [
+    " D ",
+    " # ",
+    " D "
+  ],
+  "result": {
+    "count": 1,
+    "id": "ancient-artifacts:phantom_grip"
+  }
+}

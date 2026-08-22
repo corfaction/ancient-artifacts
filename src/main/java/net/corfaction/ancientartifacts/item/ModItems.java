@@ -1,13 +1,19 @@
 package net.corfaction.ancientartifacts.item;
 
+import net.corfaction.ancientartifacts.AncientArtifacts;
 import net.corfaction.ancientartifacts.entity.ModEntityTypes;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 import java.util.function.Function;
 
@@ -61,6 +67,18 @@ public final class ModItems {
             new Item.Properties().spawnEgg(ModEntityTypes.ANCIENT_GHOST)
     );
 
+    public static final Item PHANTOM_GRIP = registerItem(
+            ModItemIds.PHANTOM_GRIP,
+            Item::new,
+            new Item.Properties()
+    );
+
+    public static final Item ECHO_BLADE = registerItem(
+            ModItemIds.ECHO_BLADE,
+            Item::new,
+            new Item.Properties().stacksTo(1)
+    );
+
     private ModItems() {
     }
 
@@ -87,7 +105,7 @@ public final class ModItems {
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS)
                 .register(creativeTab -> creativeTab.accept(PETRIFIED_TALISMAN));
 
-        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES)
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.COMBAT)
                 .register(creativeTab -> creativeTab.accept(GUARDIAN_TALISMAN));
 
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS)
@@ -104,5 +122,11 @@ public final class ModItems {
 
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.SPAWN_EGGS)
                 .register(creativeTab -> creativeTab.accept(ANCIENT_GHOST_SPAWN_EGG));
+
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS)
+                .register(creativeTab -> creativeTab.accept(PHANTOM_GRIP));
+
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.COMBAT)
+                .register(creativeTab -> creativeTab.accept(ECHO_BLADE));
     }
 }

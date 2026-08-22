@@ -96,5 +96,12 @@ public final class ModLootTables {
                                 .setWeight(15)
                 )
         );
+
+        tableBuilder.modifyPools(pool ->
+                pool.add(
+                        LootItem.lootTableItem(ModItems.RUSTY_METAL_FRAGMENT)
+                                .setWeight(15)
+                )
+        );
     }
 }

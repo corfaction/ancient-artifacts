@@ -10,7 +10,9 @@
     "artifact_slot.InventoryLoadMixin",
     "artifact_slot.InventoryMenuMixin",
     "artifact_slot.InventoryMixin",
-    "guardian_ghost.PlayerMixin"
+    "guardian_ghost.PlayerMixin",
+    ,
+    "phantom_sweep.PlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

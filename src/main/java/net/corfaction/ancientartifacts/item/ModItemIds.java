@@ -31,6 +31,12 @@ public final class ModItemIds {
     public static final ResourceKey<Item> ANCIENT_GHOST_SPAWN_EGG =
             create("ancient_ghost_spawn_egg");
 
+    public static final ResourceKey<Item> PHANTOM_GRIP =
+            create("phantom_grip");
+
+    public static final ResourceKey<Item> ECHO_BLADE =
+            create("echo_blade");
+
     public static ResourceKey<Item> create(String name) {
         return ResourceKey.create(
                 Registries.ITEM,

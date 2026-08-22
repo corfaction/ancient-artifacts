@@ -9,7 +9,11 @@ import net.corfaction.ancientartifacts.block.menu.ModMenuTypes;
 import net.corfaction.ancientartifacts.entity.ModEntity;
 import net.corfaction.ancientartifacts.item.ModItems;
 import net.corfaction.ancientartifacts.network.CleanArchaeologicalPixelPayload;
+import net.corfaction.ancientartifacts.network.PhantomSweepManager;
+import net.corfaction.ancientartifacts.network.PhantomSweepPayload;
+import net.corfaction.ancientartifacts.particle.ModParticles;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.resources.Identifier;
@@ -60,6 +64,17 @@ public final class AncientArtifacts implements ModInitializer {
 							payload.pixelY()
 					);
 				})
+		);
+
+		ModParticles.register();
+
+		PayloadTypeRegistry.clientboundPlay().register(
+				PhantomSweepPayload.TYPE,
+				PhantomSweepPayload.CODEC
+		);
+
+		ServerTickEvents.END_SERVER_TICK.register(
+				server -> PhantomSweepManager.tick()
 		);
 
 		ArchaeologicalRecipes.registerArchaeologicalRecipes();
