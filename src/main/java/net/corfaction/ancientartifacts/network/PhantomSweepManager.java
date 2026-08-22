@@ -30,7 +30,10 @@ public final class PhantomSweepManager {
     private PhantomSweepManager() {
     }
 
-    public static void captureDamage(Player player, LivingEntity target) {
+    public static void captureDamage(
+            Player player,
+            LivingEntity target
+    ) {
         PREVIOUS_HEALTH.put(
                 new PlayerTargetKey(player, target),
                 target.getHealth()
@@ -49,7 +52,10 @@ public final class PhantomSweepManager {
             return 0.0F;
         }
 
-        return Math.max(previousHealth - target.getHealth(), 0.0F);
+        return Math.max(
+                previousHealth - target.getHealth(),
+                0.0F
+        );
     }
 
     public static void schedule(
@@ -63,10 +69,6 @@ public final class PhantomSweepManager {
                 player,
                 target,
                 damage,
-                player.getX(),
-                player.getY(),
-                player.getZ(),
-                player.getYRot(),
                 DELAY
         ));
     }
@@ -81,7 +83,10 @@ public final class PhantomSweepManager {
         }
     }
 
-    private record PlayerTargetKey(Player player, LivingEntity target) {
+    private record PlayerTargetKey(
+            Player player,
+            LivingEntity target
+    ) {
     }
 
     private static final class PendingSweep {
@@ -90,10 +95,6 @@ public final class PhantomSweepManager {
         private final Player player;
         private final LivingEntity target;
         private final float damage;
-        private final double x;
-        private final double y;
-        private final double z;
-        private final float yRot;
         private int ticks;
 
         private PendingSweep(
@@ -101,20 +102,12 @@ public final class PhantomSweepManager {
                 Player player,
                 LivingEntity target,
                 float damage,
-                double x,
-                double y,
-                double z,
-                float yRot,
                 int ticks
         ) {
             this.level = level;
             this.player = player;
             this.target = target;
             this.damage = damage;
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.yRot = yRot;
             this.ticks = ticks;
         }
 
@@ -123,7 +116,9 @@ public final class PhantomSweepManager {
                 return false;
             }
 
-            if (player.isRemoved() || target.isRemoved() || !target.isAlive()) {
+            if (player.isRemoved()
+                    || target.isRemoved()
+                    || !target.isAlive()) {
                 return true;
             }
 
@@ -133,54 +128,78 @@ public final class PhantomSweepManager {
 
         private void perform() {
             DamageSource damageSource = player.createDamageSource();
+
             target.hurtServer(
                     level,
                     damageSource,
                     damage * DAMAGE_MULTIPLIER
             );
 
-            sendSweepToTrackingPlayers();
+            Vec3 center = getTargetCenter();
+
+            sendSweepToTrackingPlayers(center);
 
             level.playSound(
                     null,
-                    x,
-                    y,
-                    z,
+                    center.x,
+                    center.y,
+                    center.z,
                     SoundEvents.PLAYER_ATTACK_SWEEP,
                     SoundSource.PLAYERS,
                     1.0F,
                     0.65F
             );
 
-            spawnBlueParticles();
+            spawnBlueParticles(center);
         }
 
-        private void sendSweepToTrackingPlayers() {
-            PhantomSweepPayload payload = new PhantomSweepPayload(
-                    x,
-                    y,
-                    z,
-                    yRot
-            );
-
-            if (player instanceof ServerPlayer serverPlayer) {
-                ServerPlayNetworking.send(serverPlayer, payload);
-            }
-
-            for (ServerPlayer other : level.players()) {
-                if (other != player && other.distanceToSqr(x, y, z) <= 64.0D * 64.0D) {
-                    ServerPlayNetworking.send(other, payload);
-                }
-            }
-        }
-
-        private void spawnBlueParticles() {
-            Vec3 center = target.position().add(
+        private Vec3 getTargetCenter() {
+            return target.position().add(
                     0.0D,
                     target.getBbHeight() * 0.5D,
                     0.0D
             );
+        }
 
+        private void sendSweepToTrackingPlayers(Vec3 center) {
+            Vec3 direction = center.subtract(
+                    player.getEyePosition()
+            );
+
+            float yRot = (float) Math.toDegrees(
+                    Math.atan2(
+                            -direction.x,
+                            direction.z
+                    )
+            );
+
+            PhantomSweepPayload payload = new PhantomSweepPayload(
+                    center.x,
+                    center.y,
+                    center.z,
+                    yRot
+            );
+
+            if (player instanceof ServerPlayer serverPlayer) {
+                ServerPlayNetworking.send(
+                        serverPlayer,
+                        payload
+                );
+            }
+
+            for (ServerPlayer other : level.players()) {
+                if (other != player
+                        && other.distanceToSqr(center)
+                        <= 64.0D * 64.0D) {
+                    ServerPlayNetworking.send(
+                            other,
+                            payload
+                    );
+                }
+            }
+        }
+
+        private void spawnBlueParticles(Vec3 center) {
             level.sendParticles(
                     ParticleTypes.ELECTRIC_SPARK,
                     center.x,
