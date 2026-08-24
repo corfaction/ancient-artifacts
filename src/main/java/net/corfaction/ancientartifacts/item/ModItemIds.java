@@ -40,6 +40,9 @@ public final class ModItemIds {
     public static final ResourceKey<Item> ARCHAEOLOGIST_EYE =
             create("archaeologist_eye");
 
+    public static final ResourceKey<Item> GHOST_SOUL =
+            create("ghost_soul");
+
     public static ResourceKey<Item> create(String name) {
         return ResourceKey.create(
                 Registries.ITEM,

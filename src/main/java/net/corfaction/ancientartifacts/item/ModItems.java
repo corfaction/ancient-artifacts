@@ -85,6 +85,12 @@ public final class ModItems {
             new Item.Properties().stacksTo(1)
     );
 
+    public static final Item GHOST_SOUL = registerItem(
+            ModItemIds.GHOST_SOUL,
+            GhostSoul::new,
+            new Item.Properties()
+    );
+
     private ModItems() {
     }
 
@@ -137,5 +143,8 @@ public final class ModItems {
 
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES)
                 .register(creativeTab -> creativeTab.accept(ARCHAEOLOGIST_EYE));
+
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS)
+                .register(creativeTab -> creativeTab.accept(GHOST_SOUL));
     }
 }
