@@ -5,6 +5,7 @@ import com.mojang.math.Axis;
 import net.corfaction.ancientartifacts.AncientArtifacts;
 import net.corfaction.ancientartifacts.api.ArtifactRenderStateHolder;
 import net.corfaction.ancientartifacts.client.entity.ModEntityModelLayers;
+import net.corfaction.ancientartifacts.component.ModDataComponents;
 import net.corfaction.ancientartifacts.item.ModItemIds;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.model.player.PlayerModel;
@@ -44,6 +45,10 @@ public final class GuardianGhostOnShoulderLayer extends RenderLayer<AvatarRender
         ItemStack artifact = ((ArtifactRenderStateHolder) state).ancientArtifacts$getArtifact();
 
         if (artifact.isEmpty() || !artifact.is(ModItemIds.GUARDIAN_TALISMAN)) {
+            return;
+        }
+
+        if(!artifact.getOrDefault(ModDataComponents.ACTIVATED, false)) {
             return;
         }
 

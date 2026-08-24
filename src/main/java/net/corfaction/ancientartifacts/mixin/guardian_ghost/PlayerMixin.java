@@ -1,6 +1,7 @@
 package net.corfaction.ancientartifacts.mixin.guardian_ghost;
 
 import net.corfaction.ancientartifacts.api.PlayerInventoryAccess;
+import net.corfaction.ancientartifacts.component.ModDataComponents;
 import net.corfaction.ancientartifacts.item.GuardianTalisman;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -33,6 +34,10 @@ public final class PlayerMixin {
             return;
         }
 
+        if(!artifact.getOrDefault(ModDataComponents.ACTIVATED, false)) {
+            return;
+        }
+
         if (player.tickCount % 1200 != 0) {
             return;
         }
@@ -59,10 +64,15 @@ public final class PlayerMixin {
             CallbackInfoReturnable<Boolean> cir
     ) {
         Player player = (Player) (Object) this;
+
         ItemStack artifact = ((PlayerInventoryAccess) player.getInventory())
                 .ancientArtifacts$getExtraSlot();
 
         if (!(artifact.getItem() instanceof GuardianTalisman)
+                || !artifact.getOrDefault(
+                ModDataComponents.ACTIVATED,
+                false
+        )
                 || player.isInvulnerableTo(level, source)) {
             return;
         }

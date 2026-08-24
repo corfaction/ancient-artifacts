@@ -22,6 +22,15 @@ public final class ModBlockEntityTypes {
                     )
             );
 
+    public static final BlockEntityType<ActivationAltarBlockEntity> ACTIVATION_ALTAR =
+            register(
+                    "activation_altar",
+                    new BlockEntityType<>(
+                            ActivationAltarBlockEntity::new,
+                            Set.of(ModBlocks.ACTIVATION_ALTAR)
+                    )
+            );
+
     private ModBlockEntityTypes() {
     }
 

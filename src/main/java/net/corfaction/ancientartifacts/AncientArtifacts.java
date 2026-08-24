@@ -6,6 +6,7 @@ import net.corfaction.ancientartifacts.block.entity.ArchaeologicalTableBlockEnti
 import net.corfaction.ancientartifacts.block.entity.ModBlockEntityTypes;
 import net.corfaction.ancientartifacts.block.menu.ArchaeologicalTableMenu;
 import net.corfaction.ancientartifacts.block.menu.ModMenuTypes;
+import net.corfaction.ancientartifacts.component.ModDataComponents;
 import net.corfaction.ancientartifacts.entity.ModEntity;
 import net.corfaction.ancientartifacts.item.ModItems;
 import net.corfaction.ancientartifacts.network.ArchaeologistEyePayload;
@@ -86,6 +87,8 @@ public final class AncientArtifacts implements ModInitializer {
 		);
 
 		ArchaeologicalRecipes.registerArchaeologicalRecipes();
+
+		ModDataComponents.register();
 	}
 
 	public static Identifier id(String path) {

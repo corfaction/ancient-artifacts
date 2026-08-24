@@ -3,6 +3,7 @@
   "package": "net.corfaction.ancientartifacts.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
+    "activated_artifact.ItemStackMixin",
     "ancient_ghost.BrushableBlockEntityMixin",
     "anvil.AnvilMenuAccessor",
     "anvil.AnvilMenuMixin",

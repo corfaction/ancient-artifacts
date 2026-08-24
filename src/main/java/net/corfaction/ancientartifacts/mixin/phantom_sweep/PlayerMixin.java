@@ -1,6 +1,7 @@
 package net.corfaction.ancientartifacts.mixin.phantom_sweep;
 
 import net.corfaction.ancientartifacts.api.PlayerInventoryAccess;
+import net.corfaction.ancientartifacts.component.ModDataComponents;
 import net.corfaction.ancientartifacts.item.ModItems;
 import net.corfaction.ancientartifacts.network.PhantomSweepManager;
 import net.minecraft.server.level.ServerLevel;
@@ -48,6 +49,10 @@ public abstract class PlayerMixin {
                 .ancientArtifacts$getExtraSlot();
 
         if (!artifact.is(ModItems.ECHO_BLADE)) {
+            return;
+        }
+
+        if(!artifact.getOrDefault(ModDataComponents.ACTIVATED, false)) {
             return;
         }
 

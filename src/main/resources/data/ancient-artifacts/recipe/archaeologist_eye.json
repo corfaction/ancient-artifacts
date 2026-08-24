@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "#": "ancient-artifacts:ancient_fragment",
+    "D": "minecraft:ender_pearl"
+  },
+  "pattern": [
+    " # ",
+    "#D#",
+    " # "
+  ],
+  "result": {
+    "count": 1,
+    "id": "ancient-artifacts:archaeologist_eye"
+  }
+}

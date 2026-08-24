@@ -26,6 +26,15 @@ public final class ModBlocks {
             CreativeModeTabs.FUNCTIONAL_BLOCKS
     );
 
+    public static final Block ACTIVATION_ALTAR = register(
+            "activation_altar",
+            ActivationAltarBlock::new,
+            BlockBehaviour.Properties.of()
+                    .strength(3.0F)
+                    .sound(SoundType.STONE),
+            CreativeModeTabs.FUNCTIONAL_BLOCKS
+    );
+
     private ModBlocks() {
     }
 
