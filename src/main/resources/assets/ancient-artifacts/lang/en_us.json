@@ -12,5 +12,6 @@
   "block.ancient-artifacts.archaeological_table": "Archaeological Table",
   "container.ancient-artifacts.archaeological_table": "Archaeological Table",
   "item.ancient-artifacts.archaeologist_eye": "Archaeologist Eye",
-  "item.ancient-artifacts.ghost_soul": "Ghost Soul"
+  "item.ancient-artifacts.ghost_soul": "Ghost Soul",
+  "block.ancient-artifacts.activation_altar": "Activation Altar"
 }

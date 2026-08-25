@@ -1,0 +1,7 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "ancient-artifacts:block/activation_altar",
+    "scale": 0.5
+  }
+}

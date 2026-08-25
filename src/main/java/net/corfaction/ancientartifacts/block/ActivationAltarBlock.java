@@ -9,6 +9,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -18,6 +19,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -26,6 +30,14 @@ public class ActivationAltarBlock extends BaseEntityBlock {
     public static final MapCodec<ActivationAltarBlock> CODEC =
             simpleCodec(ActivationAltarBlock::new);
 
+    private static final VoxelShape SHAPE = Shapes.or(
+            Block.box(0, 0, 0, 16, 4, 16),
+            Block.box(5, 4, 0, 11, 7, 16),
+            Block.box(0, 4, 5, 16, 7, 11),
+            Block.box(5, 7, 5, 11, 14, 11),
+            Block.box(0, 14, 0, 16, 16, 16)
+    );
+
     public ActivationAltarBlock(BlockBehaviour.Properties properties) {
         super(properties);
     }
@@ -33,6 +45,26 @@ public class ActivationAltarBlock extends BaseEntityBlock {
     @Override
     protected @NonNull MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
+    }
+
+    @Override
+    protected @NonNull VoxelShape getShape(
+            @NonNull BlockState state,
+            @NonNull BlockGetter level,
+            @NonNull BlockPos pos,
+            @NonNull CollisionContext context
+    ) {
+        return SHAPE;
+    }
+
+    @Override
+    protected @NonNull VoxelShape getCollisionShape(
+            @NonNull BlockState state,
+            @NonNull BlockGetter level,
+            @NonNull BlockPos pos,
+            @NonNull CollisionContext context
+    ) {
+        return SHAPE;
     }
 
     @Override
@@ -94,7 +126,10 @@ public class ActivationAltarBlock extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(@NonNull BlockPos pos, @NonNull BlockState state) {
+    public @Nullable BlockEntity newBlockEntity(
+            @NonNull BlockPos pos,
+            @NonNull BlockState state
+    ) {
         return new ActivationAltarBlockEntity(pos, state);
     }
 

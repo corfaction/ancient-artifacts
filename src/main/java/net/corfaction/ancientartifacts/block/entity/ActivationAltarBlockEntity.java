@@ -2,6 +2,7 @@ package net.corfaction.ancientartifacts.block.entity;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import net.corfaction.ancientartifacts.component.ModDataComponents;
 import net.corfaction.ancientartifacts.entity.AncientGhost;
@@ -9,6 +10,7 @@ import net.corfaction.ancientartifacts.entity.ModEntityTypes;
 import net.corfaction.ancientartifacts.item.ModItemTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -33,6 +35,7 @@ public class ActivationAltarBlockEntity extends BlockEntity {
     private static final String ACTIVATING_KEY = "Activating";
     private static final String KILLED_GHOSTS_KEY = "KilledGhosts";
     private static final String SPAWNED_GHOSTS_KEY = "SpawnedGhosts";
+    private static final String GHOST_IDS_KEY = "GhostIds";
 
     private static final int GHOST_SPAWN_INTERVAL = 40;
     private static final int KILL_TARGET = 10;
@@ -46,6 +49,7 @@ public class ActivationAltarBlockEntity extends BlockEntity {
     private int spawnedGhosts;
 
     private final Set<AncientGhost> ghosts = new HashSet<>();
+    private final Set<UUID> ghostIds = new HashSet<>();
 
     public ActivationAltarBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntityTypes.ACTIVATION_ALTAR, pos, state);
@@ -65,6 +69,7 @@ public class ActivationAltarBlockEntity extends BlockEntity {
             return;
         }
 
+        altar.restoreGhosts(serverLevel);
         altar.removeDeadGhosts();
 
         if (altar.killedGhosts >= KILL_TARGET) {
@@ -115,14 +120,13 @@ public class ActivationAltarBlockEntity extends BlockEntity {
                 + Math.sin(angle) * distance;
 
         ghost.setPos(x, y, z);
-
         ghost.setHealth(0.5F);
-
         ghost.setActivationAltar(this);
 
         level.addFreshEntity(ghost);
 
         ghosts.add(ghost);
+        ghostIds.add(ghost.getUUID());
         spawnedGhosts++;
 
         setChanged();
@@ -138,6 +142,7 @@ public class ActivationAltarBlockEntity extends BlockEntity {
             return;
         }
 
+        ghostIds.remove(ghost.getUUID());
         killedGhosts++;
 
         if (level instanceof ServerLevel serverLevel) {
@@ -150,6 +155,18 @@ public class ActivationAltarBlockEntity extends BlockEntity {
         if (killedGhosts >= KILL_TARGET
                 && level instanceof ServerLevel serverLevel) {
             successfulActivation(serverLevel);
+        }
+    }
+
+    private void restoreGhosts(ServerLevel level) {
+        ghosts.clear();
+
+        for (UUID uuid : ghostIds) {
+            if (level.getEntity(uuid) instanceof AncientGhost ghost
+                    && ghost.isAlive()) {
+                ghost.setActivationAltar(this);
+                ghosts.add(ghost);
+            }
         }
     }
 
@@ -223,6 +240,15 @@ public class ActivationAltarBlockEntity extends BlockEntity {
 
     private void removeDeadGhosts() {
         ghosts.removeIf(ghost -> !ghost.isAlive());
+
+        if (level == null) {
+            return;
+        }
+
+        ghostIds.removeIf(uuid -> {
+            var entity = level.getEntity(uuid);
+            return entity instanceof AncientGhost ghost && !ghost.isAlive();
+        });
     }
 
     private void successfulActivation(ServerLevel level) {
@@ -305,7 +331,17 @@ public class ActivationAltarBlockEntity extends BlockEntity {
             }
         }
 
+        if (level != null) {
+            for (UUID uuid : ghostIds) {
+                if (level.getEntity(uuid) instanceof AncientGhost ghost
+                        && ghost.isAlive()) {
+                    ghost.evaporate();
+                }
+            }
+        }
+
         ghosts.clear();
+        ghostIds.clear();
     }
 
     private void spawnSuccessParticles(ServerLevel level) {
@@ -461,7 +497,9 @@ public class ActivationAltarBlockEntity extends BlockEntity {
         spawnTicks = 0;
         killedGhosts = 0;
         spawnedGhosts = 0;
+
         ghosts.clear();
+        ghostIds.clear();
 
         setChanged();
         sync();
@@ -478,6 +516,9 @@ public class ActivationAltarBlockEntity extends BlockEntity {
         spawnTicks = 0;
         killedGhosts = 0;
         spawnedGhosts = 0;
+
+        ghosts.clear();
+        ghostIds.clear();
 
         setChanged();
         sync();
@@ -509,7 +550,9 @@ public class ActivationAltarBlockEntity extends BlockEntity {
                 ItemStack.CODEC
         ).orElse(ItemStack.EMPTY);
 
-        activating = input.getInt(ACTIVATING_KEY).orElse(0) != 0;
+        activating = input.getInt(
+                ACTIVATING_KEY
+        ).orElse(0) != 0;
 
         killedGhosts = input.getInt(
                 KILLED_GHOSTS_KEY
@@ -520,7 +563,14 @@ public class ActivationAltarBlockEntity extends BlockEntity {
         ).orElse(0);
 
         spawnTicks = 0;
+
         ghosts.clear();
+        ghostIds.clear();
+
+        input.read(
+                GHOST_IDS_KEY,
+                UUIDUtil.CODEC_SET
+        ).ifPresent(ghostIds::addAll);
     }
 
     @Override
@@ -555,6 +605,35 @@ public class ActivationAltarBlockEntity extends BlockEntity {
                     spawnedGhosts
             );
         }
+
+        if (!ghostIds.isEmpty()) {
+            output.store(
+                    GHOST_IDS_KEY,
+                    UUIDUtil.CODEC_SET,
+                    ghostIds
+            );
+        }
+    }
+
+    @Override
+    public void preRemoveSideEffects(
+            @NonNull BlockPos pos,
+            @NonNull BlockState state
+    ) {
+        if (level instanceof ServerLevel serverLevel) {
+            removeRemainingGhosts();
+        } else {
+            ghosts.clear();
+            ghostIds.clear();
+        }
+
+        item = ItemStack.EMPTY;
+        activating = false;
+        spawnTicks = 0;
+        killedGhosts = 0;
+        spawnedGhosts = 0;
+
+        super.preRemoveSideEffects(pos, state);
     }
 
     @Override

@@ -22,7 +22,9 @@ public final class ModBlocks {
     public static final Block ARCHAEOLOGICAL_TABLE = register(
             "archaeological_table",
             ArchaeologicalTableBlock::new,
-            BlockBehaviour.Properties.of().strength(2.0F).sound(SoundType.WOOD),
+            BlockBehaviour.Properties.of()
+                    .strength(2.0F)
+                    .sound(SoundType.WOOD),
             CreativeModeTabs.FUNCTIONAL_BLOCKS
     );
 
@@ -59,7 +61,7 @@ public final class ModBlocks {
         Registry.register(BuiltInRegistries.ITEM, itemKey, blockItem);
 
         CreativeModeTabEvents.modifyOutputEvent(tab).register(
-                creativeTab -> creativeTab.accept(blockItem)
+                creativeTab -> creativeTab.accept(blockItem.asItem())
         );
 
         return block;
