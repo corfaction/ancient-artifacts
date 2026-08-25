@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 public final class ArchaeologicalTableBlock extends BaseEntityBlock {
 
@@ -23,22 +23,22 @@ public final class ArchaeologicalTableBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
+    protected @NonNull MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+    public @NonNull BlockEntity newBlockEntity(@NonNull BlockPos pos, @NonNull BlockState state) {
         return new ArchaeologicalTableBlockEntity(pos, state);
     }
 
     @Override
-    protected InteractionResult useWithoutItem(
-            BlockState state,
+    protected @NonNull InteractionResult useWithoutItem(
+            @NonNull BlockState state,
             Level level,
-            BlockPos pos,
-            Player player,
-            BlockHitResult hitResult
+            @NonNull BlockPos pos,
+            @NonNull Player player,
+            @NonNull BlockHitResult hitResult
     ) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ArchaeologicalTableBlockEntity table) {
             player.openMenu(table);

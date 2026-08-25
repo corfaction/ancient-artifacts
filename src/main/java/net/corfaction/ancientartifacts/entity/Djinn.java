@@ -22,6 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.EnumSet;
@@ -35,7 +36,7 @@ public final class Djinn extends PathfinderMob {
     public Djinn(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
 
-        moveControl = new FlyingMoveControl(this, 10, true);
+        moveControl = new FlyingMoveControl<>(this, 10, true);
         setNoGravity(true);
     }
 
@@ -43,7 +44,7 @@ public final class Djinn extends PathfinderMob {
     public boolean causeFallDamage(
             double fallDistance,
             float damageModifier,
-            DamageSource damageSource
+            @NonNull DamageSource damageSource
     ) {
         return false;
     }
@@ -57,7 +58,7 @@ public final class Djinn extends PathfinderMob {
     }
 
     @Override
-    protected PathNavigation createNavigation(Level level) {
+    protected @NonNull PathNavigation createNavigation(@NonNull Level level) {
         FlyingPathNavigation navigation = new FlyingPathNavigation(this, level);
         navigation.setCanOpenDoors(false);
         navigation.setCanFloat(true);
@@ -97,19 +98,19 @@ public final class Djinn extends PathfinderMob {
         private static final ResourceKey<Structure> OCEAN_RUINS_COLD =
                 ResourceKey.create(
                         Registries.STRUCTURE,
-                        Identifier.withDefaultNamespace("trail_ruins")
+                        Identifier.withDefaultNamespace("ocean_ruin_cold")
                 );
 
         private static final ResourceKey<Structure> OCEAN_RUINS_WARM =
                 ResourceKey.create(
                         Registries.STRUCTURE,
-                        Identifier.withDefaultNamespace("trail_ruins")
+                        Identifier.withDefaultNamespace("ocean_ruin_warm")
                 );
 
         private static final ResourceKey<Structure> DESERT_PYRAMID =
                 ResourceKey.create(
                         Registries.STRUCTURE,
-                        Identifier.withDefaultNamespace("trail_ruins")
+                        Identifier.withDefaultNamespace("desert_pyramid")
                 );
 
         private final Djinn djinn;
@@ -247,7 +248,7 @@ public final class Djinn extends PathfinderMob {
 
     private static final class FlyToTargetBlockGoal extends Goal {
 
-        private static final double REACH_DISTANCE = 1.0D;
+        private static final double REACH_DISTANCE = 1.5D;
         private static final double PATH_STEP_DISTANCE = 24.0D;
         private static final int MAX_SEARCH_HEIGHT = 32;
 
@@ -302,7 +303,7 @@ public final class Djinn extends PathfinderMob {
 
             double distanceToTarget = djinn.distanceToSqr(targetX, targetY, targetZ);
 
-            if (distanceToTarget <= REACH_DISTANCE) {
+            if (distanceToTarget <= REACH_DISTANCE * REACH_DISTANCE) {
                 djinn.getNavigation().stop();
                 djinn.spawnDisappearParticles();
                 djinn.discard();
@@ -316,7 +317,7 @@ public final class Djinn extends PathfinderMob {
                         currentPathTarget.getZ() + 0.5D
                 );
 
-                if (distanceToPathTarget <= REACH_DISTANCE) {
+                if (distanceToPathTarget <= REACH_DISTANCE * REACH_DISTANCE) {
                     currentPathTarget = null;
                     updatePath();
                     return;
@@ -361,7 +362,7 @@ public final class Djinn extends PathfinderMob {
                     current.z + directionZ * PATH_STEP_DISTANCE
             );
 
-            if (!canDjinnStandAt(intermediatePos)) {
+            if (!isPositionFree(intermediatePos)) {
                 BlockPos higherPos = findFreePositionAbove(intermediatePos, 8);
 
                 if (higherPos != null) {
@@ -390,42 +391,71 @@ public final class Djinn extends PathfinderMob {
                 return null;
             }
 
-            int minY = Math.max(target.getY(), djinn.level().getMinY());
-            int maxY = Math.min(target.getY() + MAX_SEARCH_HEIGHT, djinn.level().getMaxY() - 2);
+            Level level = djinn.level();
+            int minY = target.getY() + 1;
+            int maxY = Math.min(target.getY() + MAX_SEARCH_HEIGHT, level.getMaxY() - 2);
 
+            // Ищем самую низкую доступную позицию над блоком
             for (int y = minY; y <= maxY; y++) {
                 BlockPos candidate = new BlockPos(target.getX(), y, target.getZ());
 
-                if (canDjinnStandAt(candidate)) {
+                if (isPositionFree(candidate)) {
                     return candidate;
+                }
+            }
+
+            // Если блок глубоко под землей, ищем поверхность
+            int highestSolidY = target.getY();
+            for (int y = target.getY(); y <= maxY; y++) {
+                BlockPos checkPos = new BlockPos(target.getX(), y, target.getZ());
+                if (!level.getBlockState(checkPos).getCollisionShape(level, checkPos).isEmpty()) {
+                    highestSolidY = y;
+                } else {
+                    break;
+                }
+            }
+
+            BlockPos surfacePos = new BlockPos(target.getX(), highestSolidY + 1, target.getZ());
+
+            if (isPositionFree(surfacePos)) {
+                return surfacePos;
+            }
+
+            // Ищем вокруг на поверхности
+            for (int radius = 1; radius <= 5; radius++) {
+                for (int x = -radius; x <= radius; x++) {
+                    for (int z = -radius; z <= radius; z++) {
+                        for (int y = maxY; y >= minY; y--) {
+                            BlockPos checkPos = target.offset(x, y - target.getY(), z);
+
+                            if (isPositionFree(checkPos)) {
+                                BlockPos belowPos = checkPos.below();
+                                if (!level.getBlockState(belowPos).getCollisionShape(level, belowPos).isEmpty()) {
+                                    return checkPos;
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
             return null;
         }
 
-        private boolean canDjinnStandAt(BlockPos pos) {
+        private boolean isPositionFree(BlockPos pos) {
             Level level = djinn.level();
 
-            double x = pos.getX() + 0.5D;
-            double y = pos.getY();
-            double z = pos.getZ() + 0.5D;
+            boolean blockFree = level.getBlockState(pos).getCollisionShape(level, pos).isEmpty();
+            boolean aboveFree = level.getBlockState(pos.above()).getCollisionShape(level, pos.above()).isEmpty();
 
-            return level.noCollision(
-                    djinn,
-                    djinn.getBoundingBox().move(
-                            x - djinn.getX(),
-                            y - djinn.getY(),
-                            z - djinn.getZ()
-                    )
-            );
+            return blockFree && aboveFree;
         }
 
         private @Nullable BlockPos findFreePositionAbove(BlockPos start, int maxDistance) {
             for (int i = 1; i <= maxDistance; i++) {
                 BlockPos candidate = start.above(i);
 
-                if (canDjinnStandAt(candidate)) {
+                if (isPositionFree(candidate)) {
                     return candidate;
                 }
             }

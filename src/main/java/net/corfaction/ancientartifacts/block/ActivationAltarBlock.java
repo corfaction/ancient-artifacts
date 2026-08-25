@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class ActivationAltarBlock extends BaseEntityBlock {
@@ -30,19 +31,19 @@ public class ActivationAltarBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
+    protected @NonNull MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
 
     @Override
-    protected InteractionResult useItemOn(
-            ItemStack stack,
-            BlockState state,
+    protected @NonNull InteractionResult useItemOn(
+            @NonNull ItemStack stack,
+            @NonNull BlockState state,
             Level level,
-            BlockPos pos,
-            Player player,
-            InteractionHand hand,
-            BlockHitResult hitResult
+            @NonNull BlockPos pos,
+            @NonNull Player player,
+            @NonNull InteractionHand hand,
+            @NonNull BlockHitResult hitResult
     ) {
         if (!(level.getBlockEntity(pos) instanceof ActivationAltarBlockEntity altar)) {
             return InteractionResult.PASS;
@@ -66,12 +67,12 @@ public class ActivationAltarBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(
-            BlockState state,
+    protected @NonNull InteractionResult useWithoutItem(
+            @NonNull BlockState state,
             Level level,
-            BlockPos pos,
-            Player player,
-            BlockHitResult hitResult
+            @NonNull BlockPos pos,
+            @NonNull Player player,
+            @NonNull BlockHitResult hitResult
     ) {
         if (!(level.getBlockEntity(pos) instanceof ActivationAltarBlockEntity altar)) {
             return InteractionResult.PASS;
@@ -93,15 +94,15 @@ public class ActivationAltarBlock extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+    public @Nullable BlockEntity newBlockEntity(@NonNull BlockPos pos, @NonNull BlockState state) {
         return new ActivationAltarBlockEntity(pos, state);
     }
 
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
             Level level,
-            BlockState state,
-            BlockEntityType<T> type
+            @NonNull BlockState state,
+            @NonNull BlockEntityType<T> type
     ) {
         if (level.isClientSide()) {
             return null;
@@ -115,11 +116,11 @@ public class ActivationAltarBlock extends BaseEntityBlock {
     }
 
     @Override
-    public BlockState playerWillDestroy(
+    public @NonNull BlockState playerWillDestroy(
             Level level,
-            BlockPos pos,
-            BlockState state,
-            Player player
+            @NonNull BlockPos pos,
+            @NonNull BlockState state,
+            @NonNull Player player
     ) {
         if (!level.isClientSide()
                 && level.getBlockEntity(pos) instanceof ActivationAltarBlockEntity altar) {

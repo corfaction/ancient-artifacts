@@ -15,6 +15,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.NonNull;
 
 public class ActivationAltarBlockEntityRenderer
         implements BlockEntityRenderer<
@@ -39,7 +40,7 @@ public class ActivationAltarBlockEntityRenderer
             ActivationAltarBlockEntity altar,
             ActivationAltarRenderState state,
             float partialTicks,
-            Vec3 cameraPosition,
+            @NonNull Vec3 cameraPosition,
             ModelFeatureRenderer.CrumblingOverlay breakProgress
     ) {
         BlockEntityRenderer.super.extractRenderState(
@@ -75,9 +76,9 @@ public class ActivationAltarBlockEntityRenderer
     @Override
     public void submit(
             ActivationAltarRenderState state,
-            PoseStack poseStack,
-            SubmitNodeCollector submitNodeCollector,
-            CameraRenderState camera
+            @NonNull PoseStack poseStack,
+            @NonNull SubmitNodeCollector submitNodeCollector,
+            @NonNull CameraRenderState camera
     ) {
         if (state.item.isEmpty()) {
             return;

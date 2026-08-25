@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.state.AllayRenderState;
 import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.NonNull;
 
 public final class DjinnRenderer extends MobRenderer<Djinn, AllayRenderState, AllayModel> {
 
@@ -23,7 +24,7 @@ public final class DjinnRenderer extends MobRenderer<Djinn, AllayRenderState, Al
     }
 
     @Override
-    public Identifier getTextureLocation(AllayRenderState state) {
+    public @NonNull Identifier getTextureLocation(AllayRenderState state) {
         return TEXTURE;
     }
 }

@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.NonNull;
 
 public class ActivationAltarBlockEntity extends BlockEntity {
 
@@ -500,7 +501,7 @@ public class ActivationAltarBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(ValueInput input) {
+    protected void loadAdditional(@NonNull ValueInput input) {
         super.loadAdditional(input);
 
         item = input.read(
@@ -523,7 +524,7 @@ public class ActivationAltarBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(ValueOutput output) {
+    protected void saveAdditional(@NonNull ValueOutput output) {
         super.saveAdditional(output);
 
         if (!item.isEmpty()) {
@@ -557,8 +558,8 @@ public class ActivationAltarBlockEntity extends BlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag(
-            HolderLookup.Provider registries
+    public @NonNull CompoundTag getUpdateTag(
+            HolderLookup.@NonNull Provider registries
     ) {
         return saveCustomOnly(registries);
     }

@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.NonNull;
 
 public final class ArchaeologicalTableScreen extends AbstractContainerScreen<ArchaeologicalTableMenu> {
 
@@ -73,7 +74,7 @@ public final class ArchaeologicalTableScreen extends AbstractContainerScreen<Arc
 
     @Override
     public void extractBackground(
-            GuiGraphicsExtractor graphics,
+            @NonNull GuiGraphicsExtractor graphics,
             int mouseX,
             int mouseY,
             float partialTick

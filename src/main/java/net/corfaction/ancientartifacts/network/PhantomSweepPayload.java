@@ -4,6 +4,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.NonNull;
 
 public record PhantomSweepPayload(double x, double y, double z, float yRot)
         implements CustomPacketPayload {
@@ -35,7 +36,7 @@ public record PhantomSweepPayload(double x, double y, double z, float yRot)
     }
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
+    public @NonNull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

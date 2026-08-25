@@ -4,6 +4,7 @@ import net.corfaction.ancientartifacts.api.PlayerInventoryAccess;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.NonNull;
 
 public class ExtraSlotContainer implements Container {
 
@@ -24,7 +25,7 @@ public class ExtraSlotContainer implements Container {
     }
 
     @Override
-    public ItemStack getItem(int slot) {
+    public @NonNull ItemStack getItem(int slot) {
         if (slot != 0) {
             return ItemStack.EMPTY;
         }
@@ -33,7 +34,7 @@ public class ExtraSlotContainer implements Container {
     }
 
     @Override
-    public ItemStack removeItem(int slot, int amount) {
+    public @NonNull ItemStack removeItem(int slot, int amount) {
         if (slot != 0) {
             return ItemStack.EMPTY;
         }
@@ -54,7 +55,7 @@ public class ExtraSlotContainer implements Container {
     }
 
     @Override
-    public ItemStack removeItemNoUpdate(int slot) {
+    public @NonNull ItemStack removeItemNoUpdate(int slot) {
         if (slot != 0) {
             return ItemStack.EMPTY;
         }
@@ -65,7 +66,7 @@ public class ExtraSlotContainer implements Container {
     }
 
     @Override
-    public void setItem(int slot, ItemStack stack) {
+    public void setItem(int slot, @NonNull ItemStack stack) {
         if (slot != 0) {
             return;
         }
@@ -80,7 +81,7 @@ public class ExtraSlotContainer implements Container {
     }
 
     @Override
-    public boolean stillValid(net.minecraft.world.entity.player.Player player) {
+    public boolean stillValid(net.minecraft.world.entity.player.@NonNull Player player) {
         return true;
     }
 

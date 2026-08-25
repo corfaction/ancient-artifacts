@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.NonNull;
 
 public final class AncientGhostRenderer extends MobRenderer<AncientGhost, LivingEntityRenderState, AncientGhostModel> {
 
@@ -23,7 +24,7 @@ public final class AncientGhostRenderer extends MobRenderer<AncientGhost, Living
     }
 
     @Override
-    public Identifier getTextureLocation(LivingEntityRenderState state) {
+    public @NonNull Identifier getTextureLocation(LivingEntityRenderState state) {
         return TEXTURE;
     }
 }

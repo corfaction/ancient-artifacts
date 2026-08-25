@@ -9,6 +9,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public record ArchaeologistEyePayload(List<BlockPos> positions, int duration)
     );
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
+    public @NonNull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 

@@ -13,11 +13,8 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 
 public final class GuardianGhostModel extends EntityModel<LivingEntityRenderState> {
 
-	private final ModelPart body;
-
-	public GuardianGhostModel(ModelPart root) {
+    public GuardianGhostModel(ModelPart root) {
 		super(root);
-		body = root.getChild(PartNames.BODY);
 	}
 
 	public static LayerDefinition getTexturedModelData() {

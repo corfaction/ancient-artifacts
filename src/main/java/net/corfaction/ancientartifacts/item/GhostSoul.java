@@ -7,6 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jspecify.annotations.NonNull;
 
 public class GhostSoul extends Item {
 
@@ -15,7 +16,7 @@ public class GhostSoul extends Item {
     }
 
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    public @NonNull InteractionResult use(@NonNull Level level, Player player, @NonNull InteractionHand hand) {
         ItemStack soul = player.getItemInHand(hand);
         ItemStack artifact = ((PlayerInventoryAccess) player.getInventory())
                 .ancientArtifacts$getExtraSlot();

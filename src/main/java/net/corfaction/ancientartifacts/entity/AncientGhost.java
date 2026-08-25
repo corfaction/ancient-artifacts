@@ -7,6 +7,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Vex;
 import net.minecraft.world.level.Level;
+import org.jspecify.annotations.NonNull;
 
 public class AncientGhost extends Vex {
 
@@ -28,7 +29,7 @@ public class AncientGhost extends Vex {
     }
 
     @Override
-    public void die(DamageSource damageSource) {
+    public void die(@NonNull DamageSource damageSource) {
         if (activationAltar != null
                 && level() instanceof ServerLevel serverLevel) {
             spawnDeathParticles(serverLevel);

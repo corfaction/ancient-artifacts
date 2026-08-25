@@ -13,7 +13,6 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -74,13 +73,7 @@ public final class PhantomSweepManager {
     }
 
     public static void tick() {
-        Iterator<PendingSweep> iterator = PENDING.iterator();
-
-        while (iterator.hasNext()) {
-            if (iterator.next().tick()) {
-                iterator.remove();
-            }
-        }
+        PENDING.removeIf(PendingSweep::tick);
     }
 
     private record PlayerTargetKey(

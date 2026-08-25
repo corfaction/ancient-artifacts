@@ -19,6 +19,9 @@ import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.NonNull;
+
+import java.util.Arrays;
 
 public class ArchaeologicalTableBlockEntity extends BaseContainerBlockEntity {
 
@@ -76,7 +79,7 @@ public class ArchaeologicalTableBlockEntity extends BaseContainerBlockEntity {
     }
 
     @Override
-    protected Component getDefaultName() {
+    protected @NonNull Component getDefaultName() {
         return DEFAULT_NAME;
     }
 
@@ -86,12 +89,12 @@ public class ArchaeologicalTableBlockEntity extends BaseContainerBlockEntity {
     }
 
     @Override
-    protected NonNullList<ItemStack> getItems() {
+    protected @NonNull NonNullList<ItemStack> getItems() {
         return items;
     }
 
     @Override
-    protected void setItems(NonNullList<ItemStack> items) {
+    protected void setItems(@NonNull NonNullList<ItemStack> items) {
         this.items = items;
     }
 
@@ -118,9 +121,7 @@ public class ArchaeologicalTableBlockEntity extends BaseContainerBlockEntity {
     }
 
     public void resetCleaning() {
-        for (int i = 0; i < cleanedPixels.length; i++) {
-            cleanedPixels[i] = 0;
-        }
+        Arrays.fill(cleanedPixels, 0);
     }
 
     public boolean isPixelCleaned(int x, int y) {
@@ -239,7 +240,7 @@ public class ArchaeologicalTableBlockEntity extends BaseContainerBlockEntity {
     }
 
     @Override
-    public boolean canPlaceItem(int slot, ItemStack stack) {
+    public boolean canPlaceItem(int slot, @NonNull ItemStack stack) {
         return switch (slot) {
             case BRUSH_SLOT -> stack.is(Items.BRUSH);
             case WATER_SLOT -> stack.is(Items.WATER_BUCKET);
@@ -249,7 +250,7 @@ public class ArchaeologicalTableBlockEntity extends BaseContainerBlockEntity {
     }
 
     @Override
-    protected void loadAdditional(ValueInput input) {
+    protected void loadAdditional(@NonNull ValueInput input) {
         super.loadAdditional(input);
 
         items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
@@ -264,7 +265,7 @@ public class ArchaeologicalTableBlockEntity extends BaseContainerBlockEntity {
     }
 
     @Override
-    protected void saveAdditional(ValueOutput output) {
+    protected void saveAdditional(@NonNull ValueOutput output) {
         super.saveAdditional(output);
         ContainerHelper.saveAllItems(output, items);
 
@@ -274,7 +275,7 @@ public class ArchaeologicalTableBlockEntity extends BaseContainerBlockEntity {
     }
 
     @Override
-    protected AbstractContainerMenu createMenu(int containerId, Inventory inventory) {
+    protected @NonNull AbstractContainerMenu createMenu(int containerId, @NonNull Inventory inventory) {
         return new ArchaeologicalTableMenu(containerId, inventory, this, dataAccess);
     }
 }

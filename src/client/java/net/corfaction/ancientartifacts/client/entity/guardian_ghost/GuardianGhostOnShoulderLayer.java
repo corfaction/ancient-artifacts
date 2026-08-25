@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.NonNull;
 
 public final class GuardianGhostOnShoulderLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 
@@ -35,8 +36,8 @@ public final class GuardianGhostOnShoulderLayer extends RenderLayer<AvatarRender
 
     @Override
     public void submit(
-            PoseStack poseStack,
-            SubmitNodeCollector submitNodeCollector,
+            @NonNull PoseStack poseStack,
+            @NonNull SubmitNodeCollector submitNodeCollector,
             int lightCoords,
             AvatarRenderState state,
             float yRot,
