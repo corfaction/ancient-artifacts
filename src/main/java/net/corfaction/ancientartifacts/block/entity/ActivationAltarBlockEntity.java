@@ -38,8 +38,8 @@ public class ActivationAltarBlockEntity extends BlockEntity {
     private static final String GHOST_IDS_KEY = "GhostIds";
 
     private static final int GHOST_SPAWN_INTERVAL = 40;
-    private static final int KILL_TARGET = 10;
-    private static final int MAX_SPAWNED_GHOSTS = 20;
+    private static final int KILL_TARGET = 20;
+    private static final int MAX_SPAWNED_GHOSTS = 40;
 
     private ItemStack item = ItemStack.EMPTY;
 

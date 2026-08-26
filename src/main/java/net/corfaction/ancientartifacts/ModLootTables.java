@@ -81,21 +81,21 @@ public final class ModLootTables {
         tableBuilder.modifyPools(pool ->
                 pool.add(
                         LootItem.lootTableItem(ModItems.PETRIFIED_TALISMAN)
-                                .setWeight(9)
+                                .setWeight(4)
                 )
         );
 
         tableBuilder.modifyPools(pool ->
                 pool.add(
                         LootItem.lootTableItem(ModItems.DIRTY_FRAGMENT)
-                                .setWeight(15)
+                                .setWeight(10)
                 )
         );
 
         tableBuilder.modifyPools(pool ->
                 pool.add(
                         LootItem.lootTableItem(ModItems.RUSTY_METAL_FRAGMENT)
-                                .setWeight(15)
+                                .setWeight(10)
                 )
         );
     }
