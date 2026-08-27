@@ -1,7 +1,19 @@
 {
   "variants": {
-    "": {
+    "facing=north": {
+      "model": "ancient-artifacts:block/archaeological_table",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "ancient-artifacts:block/archaeological_table",
+      "y": 270
+    },
+    "facing=south": {
       "model": "ancient-artifacts:block/archaeological_table"
+    },
+    "facing=west": {
+      "model": "ancient-artifacts:block/archaeological_table",
+      "y": 90
     }
   }
 }

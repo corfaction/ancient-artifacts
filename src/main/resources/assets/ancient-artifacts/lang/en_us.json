@@ -1,17 +1,48 @@
 {
-  "item.ancient-artifacts.mysterious_lamp": "Mysterious Lamp",
   "item.ancient-artifacts.petrified_talisman": "Petrified Talisman",
-  "item.ancient-artifacts.guardian_talisman": "Guardian Talisman",
+  "item.ancient-artifacts.petrified_talisman_1": "Petrified Talisman",
+
   "item.ancient-artifacts.ancient_fragment": "Ancient Fragment",
   "item.ancient-artifacts.dirty_fragment": "Dirty Fragment",
   "item.ancient-artifacts.rusty_metal_fragment": "Rusty Metal Fragment",
-  "item.ancient-artifacts.metal_fragment": "Metal Fragment",
-  "item.ancient-artifacts.echo_blade": "Echo Blade",
   "item.ancient-artifacts.phantom_grip": "Phantom Grip",
   "item.ancient-artifacts.ancient_ghost_spawn_egg": "Ancient Ghost Spawn Egg",
-  "block.ancient-artifacts.archaeological_table": "Archaeological Table",
   "container.ancient-artifacts.archaeological_table": "Archaeological Table",
-  "item.ancient-artifacts.archaeologist_eye": "Archaeologist Eye",
+  "item.ancient-artifacts.metal_fragment": "Metal Fragment",
+
   "item.ancient-artifacts.ghost_soul": "Ghost Soul",
-  "block.ancient-artifacts.activation_altar": "Activation Altar"
+  "item.ancient-artifacts.ghost_soul.desc": "Used to repair certain artifacts.",
+  "item.ancient-artifacts.ghost_soul.desc.1": "Right-click to use.",
+
+  "item.ancient-artifacts.mysterious_lamp": "Mysterious Lamp",
+  "item.ancient-artifacts.mysterious_lamp.desc": "Summons a djinn that leads you to the",
+  "item.ancient-artifacts.mysterious_lamp.desc.1": "nearest archaeological site.",
+  "item.ancient-artifacts.mysterious_lamp.desc.2": "Right-click to use.",
+
+  "block.ancient-artifacts.archaeological_table": "Archaeological Table",
+  "block.ancient-artifacts.archaeological_table.desc": "Allows you to clean archaeological",
+  "block.ancient-artifacts.archaeological_table.desc.1": "materials and artifacts.",
+
+  "block.ancient-artifacts.activation_altar": "Activation Altar",
+  "block.ancient-artifacts.activation_altar.desc": "Allows you to activate the artifact.",
+  "block.ancient-artifacts.activation_altar.desc.1": "Right-click the table with the artifact",
+  "block.ancient-artifacts.activation_altar.desc.2": "and kill as many ghosts as possible.",
+  "block.ancient-artifacts.activation_altar.desc.3": "If too many ghosts are present,",
+  "block.ancient-artifacts.activation_altar.desc.4": "the artifact will be destroyed.",
+
+  "item.ancient-artifacts.guardian_talisman": "Guardian Talisman",
+  "item.ancient-artifacts.guardian_talisman.desc": "Has a 1 in 5 chance to completely block",
+  "item.ancient-artifacts.guardian_talisman.desc.1": "incoming damage.",
+
+  "item.ancient-artifacts.echo_blade": "Echo Blade",
+  "item.ancient-artifacts.echo_blade.desc": "Attacks deal an additional hit",
+  "item.ancient-artifacts.echo_blade.desc.1": "equal to 50% of melee weapon damage.",
+
+  "item.ancient-artifacts.archaeologist_eye": "Archaeologist Eye",
+  "item.ancient-artifacts.archaeologist_eye.desc": "Highlights suspicious blocks within",
+  "item.ancient-artifacts.archaeologist_eye.desc.1": "a 32-block radius.",
+  "item.ancient-artifacts.archaeologist_eye.desc.2": "Right-click to use.",
+
+  "item.ancient-artifacts.skybound_talisman": "Skybound Talisman",
+  "item.ancient-artifacts.skybound_talisman.desc": "Allows you to perform an additional jump."
 }

@@ -8,13 +8,18 @@ import net.corfaction.ancientartifacts.client.entity.ModEntityModelLayers;
 import net.corfaction.ancientartifacts.client.entity.ancient_ghost.AncientGhostRenderer;
 import net.corfaction.ancientartifacts.client.entity.djinn.DjinnRenderer;
 import net.corfaction.ancientartifacts.client.gui.ArchaeologicalTableScreen;
+import net.corfaction.ancientartifacts.client.item.ModItemDescription;
 import net.corfaction.ancientartifacts.entity.ModEntityTypes;
+import net.corfaction.ancientartifacts.item.ModItems;
 import net.corfaction.ancientartifacts.network.ArchaeologistEyePayload;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.minecraft.network.chat.Component;
 
 public final class AncientArtifactsClient implements ClientModInitializer {
 
@@ -44,5 +49,7 @@ public final class AncientArtifactsClient implements ClientModInitializer {
 				ModBlockEntityTypes.ACTIVATION_ALTAR,
 				ActivationAltarBlockEntityRenderer::new
 		);
+
+		ModItemDescription.register();
 	}
 }

@@ -72,7 +72,7 @@ public final class ModLootTables {
                 LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1))
                         .add(LootItem.lootTableItem(ModItems.MYSTERIOUS_LAMP).setWeight(1))
-                        .add(EmptyLootItem.emptyItem().setWeight(3))
+                        .add(EmptyLootItem.emptyItem().setWeight(2))
                         .build()
         );
     }
@@ -87,15 +87,22 @@ public final class ModLootTables {
 
         tableBuilder.modifyPools(pool ->
                 pool.add(
+                        LootItem.lootTableItem(ModItems.PETRIFIED_TALISMAN_1)
+                                .setWeight(4)
+                )
+        );
+
+        tableBuilder.modifyPools(pool ->
+                pool.add(
                         LootItem.lootTableItem(ModItems.DIRTY_FRAGMENT)
-                                .setWeight(10)
+                                .setWeight(11)
                 )
         );
 
         tableBuilder.modifyPools(pool ->
                 pool.add(
                         LootItem.lootTableItem(ModItems.RUSTY_METAL_FRAGMENT)
-                                .setWeight(10)
+                                .setWeight(11)
                 )
         );
     }

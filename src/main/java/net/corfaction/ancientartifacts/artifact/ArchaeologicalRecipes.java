@@ -53,5 +53,11 @@ public final class ArchaeologicalRecipes {
                 AncientArtifacts.id("textures/item/dirty_fragment.png"),
                 AncientArtifacts.id("textures/item/ancient_fragment.png")
         );
+        register(
+                ModItems.PETRIFIED_TALISMAN_1,
+                ModItems.SKYBOUND_TALISMAN,
+                AncientArtifacts.id("textures/item/petrified_talisman_1.png"),
+                AncientArtifacts.id("textures/item/skybound_talisman.png")
+        );
     }
 }

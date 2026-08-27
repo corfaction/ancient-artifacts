@@ -5,6 +5,7 @@ import com.mojang.serialization.MapCodec;
 import net.corfaction.ancientartifacts.block.entity.ActivationAltarBlockEntity;
 import net.corfaction.ancientartifacts.block.entity.ModBlockEntityTypes;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -77,25 +78,41 @@ public class ActivationAltarBlock extends BaseEntityBlock {
             @NonNull InteractionHand hand,
             @NonNull BlockHitResult hitResult
     ) {
-        if (!(level.getBlockEntity(pos) instanceof ActivationAltarBlockEntity altar)) {
+        if (!(level.getBlockEntity(pos)
+                instanceof ActivationAltarBlockEntity altar)) {
             return InteractionResult.PASS;
         }
 
-        if (!altar.isEmpty()
-                || stack.isEmpty()
-                || !altar.canAcceptItem(stack)) {
-            return InteractionResult.PASS;
-        }
+        if (!altar.isEmpty() && !altar.isActivating()) {
+            if (!level.isClientSide()) {
+                ItemStack altarItem = altar.removeItem();
 
-        if (!level.isClientSide()) {
-            altar.setItem(stack.copyWithCount(1));
-
-            if (!player.getAbilities().instabuild) {
-                stack.shrink(1);
+                if (!altarItem.isEmpty()) {
+                    if (!player.getInventory().add(altarItem)) {
+                        player.drop(altarItem, false);
+                    }
+                }
             }
+
+            return InteractionResult.SUCCESS;
         }
 
-        return InteractionResult.SUCCESS;
+        if (altar.isEmpty()
+                && !stack.isEmpty()
+                && altar.canAcceptItem(stack)) {
+
+            if (!level.isClientSide()) {
+                altar.setItem(stack.copyWithCount(1));
+
+                if (!player.getAbilities().instabuild) {
+                    stack.shrink(1);
+                }
+            }
+
+            return InteractionResult.SUCCESS;
+        }
+
+        return InteractionResult.PASS;
     }
 
     @Override
@@ -106,23 +123,26 @@ public class ActivationAltarBlock extends BaseEntityBlock {
             @NonNull Player player,
             @NonNull BlockHitResult hitResult
     ) {
-        if (!(level.getBlockEntity(pos) instanceof ActivationAltarBlockEntity altar)) {
+        if (!(level.getBlockEntity(pos)
+                instanceof ActivationAltarBlockEntity altar)) {
             return InteractionResult.PASS;
         }
 
-        if (altar.isEmpty()) {
-            return InteractionResult.PASS;
-        }
+        if (!altar.isEmpty() && !altar.isActivating()) {
+            if (!level.isClientSide()) {
+                ItemStack stack = altar.removeItem();
 
-        if (!level.isClientSide()) {
-            ItemStack stack = altar.removeItem();
-
-            if (!player.getInventory().add(stack)) {
-                player.drop(stack, false);
+                if (!stack.isEmpty()) {
+                    if (!player.getInventory().add(stack)) {
+                        player.drop(stack, false);
+                    }
+                }
             }
+
+            return InteractionResult.SUCCESS;
         }
 
-        return InteractionResult.SUCCESS;
+        return InteractionResult.PASS;
     }
 
     @Override
@@ -158,10 +178,31 @@ public class ActivationAltarBlock extends BaseEntityBlock {
             @NonNull Player player
     ) {
         if (!level.isClientSide()
-                && level.getBlockEntity(pos) instanceof ActivationAltarBlockEntity altar) {
-            Block.popResource(level, pos, altar.removeItem());
+                && level.getBlockEntity(pos)
+                instanceof ActivationAltarBlockEntity altar) {
+
+            if (altar.isActivating()) {
+                altar.spawnFailureEffects(
+                        (ServerLevel) level
+                );
+            } else {
+                ItemStack stack = altar.removeItem();
+
+                if (!stack.isEmpty()) {
+                    Block.popResource(
+                            level,
+                            pos,
+                            stack
+                    );
+                }
+            }
         }
 
-        return super.playerWillDestroy(level, pos, state, player);
+        return super.playerWillDestroy(
+                level,
+                pos,
+                state,
+                player
+        );
     }
 }

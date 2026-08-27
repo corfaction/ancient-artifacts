@@ -33,17 +33,20 @@ public class ActivationAltarBlockEntity extends BlockEntity {
 
     private static final String ITEM_KEY = "Item";
     private static final String ACTIVATING_KEY = "Activating";
+    private static final String ACTIVATION_DELAY_KEY = "ActivationDelay";
     private static final String KILLED_GHOSTS_KEY = "KilledGhosts";
     private static final String SPAWNED_GHOSTS_KEY = "SpawnedGhosts";
     private static final String GHOST_IDS_KEY = "GhostIds";
 
+    private static final int ACTIVATION_DELAY = 60;
     private static final int GHOST_SPAWN_INTERVAL = 40;
     private static final int KILL_TARGET = 20;
-    private static final int MAX_SPAWNED_GHOSTS = 40;
+    private static final int MAX_SPAWNED_GHOSTS = 25;
 
     private ItemStack item = ItemStack.EMPTY;
 
     private boolean activating;
+    private int activationDelay;
     private int spawnTicks;
     private int killedGhosts;
     private int spawnedGhosts;
@@ -61,11 +64,26 @@ public class ActivationAltarBlockEntity extends BlockEntity {
             BlockState state,
             ActivationAltarBlockEntity altar
     ) {
-        if (!altar.activating || altar.isEmpty()) {
+        if (altar.isEmpty()) {
             return;
         }
 
         if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        if (!altar.activating) {
+            if (altar.activationDelay > 0) {
+                altar.activationDelay--;
+
+                if (altar.activationDelay <= 0) {
+                    altar.activating = true;
+                    altar.spawnTicks = 0;
+                    altar.setChanged();
+                    altar.sync();
+                }
+            }
+
             return;
         }
 
@@ -264,6 +282,7 @@ public class ActivationAltarBlockEntity extends BlockEntity {
         );
 
         activating = false;
+        activationDelay = 0;
         spawnTicks = 0;
 
         removeRemainingGhosts();
@@ -288,18 +307,10 @@ public class ActivationAltarBlockEntity extends BlockEntity {
     }
 
     private void failedActivation(ServerLevel level) {
-        spawnFailureParticles(level);
-
-        level.playSound(
-                null,
-                worldPosition,
-                SoundEvents.VEX_DEATH,
-                SoundSource.BLOCKS,
-                1.0F,
-                0.7F
-        );
+        spawnFailureEffects(level);
 
         activating = false;
+        activationDelay = 0;
         spawnTicks = 0;
 
         removeRemainingGhosts();
@@ -311,6 +322,19 @@ public class ActivationAltarBlockEntity extends BlockEntity {
 
         setChanged();
         sync();
+    }
+
+    public void spawnFailureEffects(ServerLevel level) {
+        spawnFailureParticles(level);
+
+        level.playSound(
+                null,
+                worldPosition,
+                SoundEvents.ITEM_BREAK.value(),
+                SoundSource.BLOCKS,
+                2.0F,
+                1.0F
+        );
     }
 
     private void activateItem() {
@@ -467,6 +491,7 @@ public class ActivationAltarBlockEntity extends BlockEntity {
 
     public boolean canAcceptItem(ItemStack stack) {
         return !activating
+                && activationDelay <= 0
                 && stack.is(ModItemTags.ARTIFACT)
                 && !stack.getOrDefault(
                 ModDataComponents.ACTIVATED,
@@ -476,6 +501,10 @@ public class ActivationAltarBlockEntity extends BlockEntity {
 
     public boolean isActivating() {
         return activating;
+    }
+
+    public int getActivationDelay() {
+        return activationDelay;
     }
 
     public int getKilledGhosts() {
@@ -493,7 +522,8 @@ public class ActivationAltarBlockEntity extends BlockEntity {
 
         item = stack.copyWithCount(1);
 
-        activating = true;
+        activating = false;
+        activationDelay = ACTIVATION_DELAY;
         spawnTicks = 0;
         killedGhosts = 0;
         spawnedGhosts = 0;
@@ -513,6 +543,7 @@ public class ActivationAltarBlockEntity extends BlockEntity {
         ItemStack stack = item;
         item = ItemStack.EMPTY;
 
+        activationDelay = 0;
         spawnTicks = 0;
         killedGhosts = 0;
         spawnedGhosts = 0;
@@ -554,6 +585,10 @@ public class ActivationAltarBlockEntity extends BlockEntity {
                 ACTIVATING_KEY
         ).orElse(0) != 0;
 
+        activationDelay = input.getInt(
+                ACTIVATION_DELAY_KEY
+        ).orElse(0);
+
         killedGhosts = input.getInt(
                 KILLED_GHOSTS_KEY
         ).orElse(0);
@@ -589,6 +624,13 @@ public class ActivationAltarBlockEntity extends BlockEntity {
             output.putInt(
                     ACTIVATING_KEY,
                     1
+            );
+        }
+
+        if (activationDelay > 0) {
+            output.putInt(
+                    ACTIVATION_DELAY_KEY,
+                    activationDelay
             );
         }
 
@@ -629,6 +671,7 @@ public class ActivationAltarBlockEntity extends BlockEntity {
 
         item = ItemStack.EMPTY;
         activating = false;
+        activationDelay = 0;
         spawnTicks = 0;
         killedGhosts = 0;
         spawnedGhosts = 0;

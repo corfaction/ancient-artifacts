@@ -85,6 +85,18 @@ public final class ModItems {
             new Item.Properties()
     );
 
+    public static final Item PETRIFIED_TALISMAN_1 = registerItem(
+            ModItemIds.PETRIFIED_TALISMAN_1,
+            Item::new,
+            new Item.Properties().stacksTo(1)
+    );
+
+    public static final Item SKYBOUND_TALISMAN = registerItem(
+            ModItemIds.SKYBOUND_TALISMAN,
+            Item::new,
+            new Item.Properties().stacksTo(1)
+    );
+
     private ModItems() {
     }
 
@@ -140,5 +152,11 @@ public final class ModItems {
 
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS)
                 .register(creativeTab -> creativeTab.accept(GHOST_SOUL));
+
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS)
+                .register(creativeTab -> creativeTab.accept(PETRIFIED_TALISMAN_1));
+
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.COMBAT)
+                .register(creativeTab -> creativeTab.accept(SKYBOUND_TALISMAN));
     }
 }

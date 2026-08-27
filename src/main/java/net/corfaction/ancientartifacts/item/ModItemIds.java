@@ -43,6 +43,12 @@ public final class ModItemIds {
     public static final ResourceKey<Item> GHOST_SOUL =
             create("ghost_soul");
 
+    public static final ResourceKey<Item> PETRIFIED_TALISMAN_1 =
+            create("petrified_talisman_1");
+
+    public static final ResourceKey<Item> SKYBOUND_TALISMAN =
+            create("skybound_talisman");
+
     public static ResourceKey<Item> create(String name) {
         return ResourceKey.create(
                 Registries.ITEM,

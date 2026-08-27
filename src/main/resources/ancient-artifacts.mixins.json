@@ -12,7 +12,8 @@
     "artifact_slot.InventoryMixin",
     "artifact_slot.ServerGamePacketListenerImplMixin",
     "guardian_ghost.PlayerMixin",
-    "phantom_sweep.PlayerMixin"
+    "phantom_sweep.PlayerMixin",
+    "skybound.LivingEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
