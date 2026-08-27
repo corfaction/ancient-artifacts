@@ -134,9 +134,9 @@ public final class ArchaeologistEyeRenderer {
                     pos.getX() + 1.0F,
                     pos.getY() + 1.0F,
                     pos.getZ() + 1.0F,
-                    0.15F,
-                    0.85F,
-                    1.0F,
+                    0.76F,
+                    0.44F,
+                    0.18F,
                     alpha
             );
         }
